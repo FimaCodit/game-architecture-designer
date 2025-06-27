@@ -16,3 +16,36 @@ code {
 * {
 	box-sizing: border-box;
 }
+
+/* Темный фон для классов */
+.class-block-dark {
+	background-color: #1f2937 !important; /* gray-800 */
+	color: white;
+}
+
+.class-block-dark .bg-white {
+	background-color: #374151 !important; /* gray-700 */
+	color: white;
+}
+
+.class-block-dark .text-gray-600 {
+	color: #d1d5db !important; /* gray-300 */
+}
+
+.class-block-dark .text-gray-700 {
+	color: #e5e7eb !important; /* gray-200 */
+}
+
+.class-block-dark .border-b {
+	border-color: #4b5563 !important; /* gray-600 */
+}
+
+/* Дополнительные стили для улучшения читаемости */
+.class-block-dark .font-black {
+	font-weight: 900 !important;
+}
+
+.class-block-dark .text-base {
+	font-size: 1rem !important;
+	line-height: 1.5rem !important;
+}

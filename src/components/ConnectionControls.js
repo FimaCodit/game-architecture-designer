@@ -74,7 +74,7 @@ const ConnectionControls = ({ isConnecting, onToggleConnectionMode, connectionsC
 									<div className="flex items-center gap-2">
 										<span className="text-xs text-gray-400">Пример:</span>
 										<svg width="60" height="20" className="flex-shrink-0">
-											<line x1="5" y1="10" x2="55" y2="10" stroke={lineStyle.color} strokeWidth="2.5" strokeDasharray={lineStyle.strokeDasharray} />
+											<line x1="5" y1="10" x2="55" y2="10" stroke={lineStyle.color} strokeWidth="3" strokeDasharray={lineStyle.strokeDasharray} />
 										</svg>
 									</div>
 								</button>

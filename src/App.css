@@ -74,3 +74,31 @@
 .class-block.multi-selected {
 	box-shadow: 0 0 0 2px #8b5cf6, 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
+
+/* Темные стили для классов */
+.class-block-dark {
+	background-color: #1f2937 !important;
+	color: white !important;
+}
+
+.class-block-dark .bg-white {
+	background-color: #374151 !important;
+	color: white !important;
+}
+
+.class-block-dark .text-gray-600 {
+	color: #d1d5db !important;
+}
+
+.class-block-dark .text-gray-700 {
+	color: #e5e7eb !important;
+}
+
+.class-block-dark .border-b {
+	border-color: #4b5563 !important;
+}
+
+/* Обновляем hover эффекты для темной темы */
+.class-block-dark:hover {
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}

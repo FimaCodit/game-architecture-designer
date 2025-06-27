@@ -62,8 +62,9 @@ const WorkspaceArea = ({
 		<div className="flex-1 relative overflow-hidden">
 			<div
 				ref={canvasRef}
-				className={`w-full h-full bg-gray-100 relative overflow-hidden select-none ${isPanning ? "cursor-grabbing" : isSelectionMode ? "cursor-crosshair" : "cursor-grab"}`}
+				className={`w-full h-full relative overflow-hidden select-none ${isPanning ? "cursor-grabbing" : isSelectionMode ? "cursor-crosshair" : "cursor-grab"}`}
 				style={{
+					backgroundColor: "#f3f4f6", // Явно задаем светлый фон
 					backgroundImage: "radial-gradient(circle, #ccc 1px, transparent 1px)",
 					backgroundSize: `${20 * localCamera.zoom}px ${20 * localCamera.zoom}px`,
 					backgroundPosition: `${localCamera.offsetX}px ${localCamera.offsetY}px`,
@@ -96,7 +97,7 @@ const WorkspaceArea = ({
 				{/* Сообщение о пустой области - показываем только здесь */}
 				{classes.length === 0 && (
 					<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-						<div className="text-center text-gray-500">
+						<div className="text-center text-gray-500 dark:text-gray-400">
 							<div className="text-4xl mb-4">🎮</div>
 							<p className="text-lg mb-2">Начните создавать архитектуру игры</p>
 							<p className="text-sm">Выберите шаблон или добавьте классы вручную</p>
@@ -105,7 +106,7 @@ const WorkspaceArea = ({
 				)}
 
 				{/* Индикатор режима выделения - перемещаем в левый нижний угол */}
-				{isSelectionMode && <div className="absolute bottom-4 left-4 z-50 bg-blue-500 text-white px-3 py-1 rounded text-sm">🎯 Режим выделения (Ctrl/Cmd)</div>}
+				{isSelectionMode && <div className="absolute bottom-4 left-4 z-50 bg-blue-500 dark:bg-blue-600 text-white px-3 py-1 rounded text-sm">🎯 Режим выделения (Ctrl/Cmd)</div>}
 			</div>
 		</div>
 	);

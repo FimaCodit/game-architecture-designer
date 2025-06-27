@@ -117,7 +117,7 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 	return (
 		<div
 			ref={editorRef}
-			className="fixed bg-white border border-gray-300 rounded-lg shadow-xl z-50 w-80 max-h-96 overflow-hidden"
+			className="fixed bg-gray-800 border border-gray-600 rounded-lg shadow-xl z-50 w-80 max-h-96 overflow-hidden text-white"
 			style={{
 				left: position.x,
 				top: position.y,
@@ -126,12 +126,12 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 			onMouseDown={handleMouseDown}
 		>
 			{/* Заголовок с возможностью перетаскивания */}
-			<div className="drag-handle bg-gray-50 p-3 border-b cursor-move flex items-center justify-between">
+			<div className="drag-handle bg-gray-700 p-3 border-b border-gray-600 cursor-move flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<Move size={16} className="text-gray-500" />
-					<h3 className="font-semibold text-sm">Редактирование: {selectedClass.name}</h3>
+					<Move size={16} className="text-gray-300" />
+					<h3 className="font-semibold text-sm text-white">Редактирование: {selectedClass.name}</h3>
 				</div>
-				<button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-1">
+				<button onClick={onClose} className="text-gray-300 hover:text-white p-1">
 					<X size={16} />
 				</button>
 			</div>
@@ -139,12 +139,12 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 			<div className="p-3 overflow-y-auto max-h-80">
 				{/* Название класса */}
 				<div className="mb-4">
-					<label className="block text-sm font-medium mb-1">Название</label>
+					<label className="block text-sm font-medium mb-1 text-gray-200">Название</label>
 					<input
 						type="text"
 						value={selectedClass.name}
 						onChange={(e) => updateProperty("name", e.target.value)}
-						className="w-full p-2 border rounded text-sm"
+						className="w-full p-2 border border-gray-600 rounded text-sm bg-gray-700 text-white"
 						onKeyDown={(e) => {
 							if (e.key === "Enter") {
 								e.target.blur();
@@ -156,21 +156,21 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 				{/* Свойства */}
 				<div className="mb-4">
 					<div className="flex justify-between items-center mb-2">
-						<label className="text-sm font-medium">Свойства</label>
-						<button onClick={() => onAddProperty(selectedClass.id)} className="text-blue-500 hover:text-blue-700">
+						<label className="text-sm font-medium text-gray-200">Свойства</label>
+						<button onClick={() => onAddProperty(selectedClass.id)} className="text-blue-400 hover:text-blue-300">
 							<Plus size={14} />
 						</button>
 					</div>
 					<div className="space-y-2 max-h-32 overflow-y-auto">
 						{selectedClass.properties.map((prop, idx) => (
-							<div key={idx} className="bg-gray-50 p-2 rounded">
+							<div key={idx} className="bg-gray-700 p-2 rounded">
 								{editingProperty === idx ? (
 									<div className="space-y-2">
 										<div className="flex gap-2">
 											<select
 												value={editValues.access || "private"}
 												onChange={(e) => setEditValues({ ...editValues, access: e.target.value })}
-												className="flex-1 p-1 border rounded text-xs"
+												className="flex-1 p-1 border border-gray-600 rounded text-xs bg-gray-700 text-white"
 											>
 												<option value="private">private</option>
 												<option value="public">public</option>
@@ -181,7 +181,7 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 												value={editValues.type || ""}
 												onChange={(e) => setEditValues({ ...editValues, type: e.target.value })}
 												placeholder="Тип"
-												className="flex-1 p-1 border rounded text-xs"
+												className="flex-1 p-1 border border-gray-600 rounded text-xs bg-gray-700 text-white"
 											/>
 										</div>
 										<div className="flex gap-2">
@@ -190,26 +190,26 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 												value={editValues.name || ""}
 												onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
 												placeholder="Название"
-												className="flex-1 p-1 border rounded text-xs"
+												className="flex-1 p-1 border border-gray-600 rounded text-xs bg-gray-700 text-white"
 											/>
-											<button onClick={saveProperty} className="text-green-600 hover:text-green-800">
+											<button onClick={saveProperty} className="text-green-400 hover:text-green-300">
 												<Check size={12} />
 											</button>
-											<button onClick={cancelEditProperty} className="text-red-600 hover:text-red-800">
+											<button onClick={cancelEditProperty} className="text-red-400 hover:text-red-300">
 												<X size={12} />
 											</button>
 										</div>
 									</div>
 								) : (
 									<div className="flex justify-between items-center">
-										<span className="text-xs">
+										<span className="text-xs text-gray-200">
 											{prop.access} {prop.type} {prop.name}
 										</span>
 										<div className="flex gap-1">
-											<button onClick={() => startEditProperty(idx)} className="text-blue-600 hover:text-blue-800">
+											<button onClick={() => startEditProperty(idx)} className="text-blue-400 hover:text-blue-300">
 												<Edit2 size={10} />
 											</button>
-											<button onClick={() => deleteProperty(idx)} className="text-red-600 hover:text-red-800">
+											<button onClick={() => deleteProperty(idx)} className="text-red-400 hover:text-red-300">
 												<Trash2 size={10} />
 											</button>
 										</div>
@@ -223,21 +223,21 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 				{/* Методы */}
 				<div className="mb-4">
 					<div className="flex justify-between items-center mb-2">
-						<label className="text-sm font-medium">Методы</label>
-						<button onClick={() => onAddMethod(selectedClass.id)} className="text-blue-500 hover:text-blue-700">
+						<label className="text-sm font-medium text-gray-200">Методы</label>
+						<button onClick={() => onAddMethod(selectedClass.id)} className="text-blue-400 hover:text-blue-300">
 							<Plus size={14} />
 						</button>
 					</div>
 					<div className="space-y-2 max-h-32 overflow-y-auto">
 						{selectedClass.methods.map((method, idx) => (
-							<div key={idx} className="bg-gray-50 p-2 rounded">
+							<div key={idx} className="bg-gray-700 p-2 rounded">
 								{editingMethod === idx ? (
 									<div className="space-y-2">
 										<div className="flex gap-2">
 											<select
 												value={editValues.access || "public"}
 												onChange={(e) => setEditValues({ ...editValues, access: e.target.value })}
-												className="flex-1 p-1 border rounded text-xs"
+												className="flex-1 p-1 border border-gray-600 rounded text-xs bg-gray-700 text-white"
 											>
 												<option value="public">public</option>
 												<option value="private">private</option>
@@ -248,7 +248,7 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 												value={editValues.returnType || ""}
 												onChange={(e) => setEditValues({ ...editValues, returnType: e.target.value })}
 												placeholder="Возвращаемый тип"
-												className="flex-1 p-1 border rounded text-xs"
+												className="flex-1 p-1 border border-gray-600 rounded text-xs bg-gray-700 text-white"
 											/>
 										</div>
 										<div className="flex gap-2">
@@ -257,35 +257,35 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 												value={editValues.name || ""}
 												onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
 												placeholder="Название метода"
-												className="flex-1 p-1 border rounded text-xs"
+												className="flex-1 p-1 border border-gray-600 rounded text-xs bg-gray-700 text-white"
 											/>
 											<input
 												type="text"
 												value={editValues.params || ""}
 												onChange={(e) => setEditValues({ ...editValues, params: e.target.value })}
 												placeholder="Параметры"
-												className="flex-1 p-1 border rounded text-xs"
+												className="flex-1 p-1 border border-gray-600 rounded text-xs bg-gray-700 text-white"
 											/>
 										</div>
 										<div className="flex gap-2 justify-end">
-											<button onClick={saveMethod} className="text-green-600 hover:text-green-800">
+											<button onClick={saveMethod} className="text-green-400 hover:text-green-300">
 												<Check size={12} />
 											</button>
-											<button onClick={cancelEditMethod} className="text-red-600 hover:text-red-800">
+											<button onClick={cancelEditMethod} className="text-red-400 hover:text-red-300">
 												<X size={12} />
 											</button>
 										</div>
 									</div>
 								) : (
 									<div className="flex justify-between items-center">
-										<span className="text-xs">
+										<span className="text-xs text-gray-200">
 											{method.access} {method.returnType} {method.name}({method.params})
 										</span>
 										<div className="flex gap-1">
-											<button onClick={() => startEditMethod(idx)} className="text-blue-600 hover:text-blue-800">
+											<button onClick={() => startEditMethod(idx)} className="text-blue-400 hover:text-blue-300">
 												<Edit2 size={10} />
 											</button>
-											<button onClick={() => deleteMethod(idx)} className="text-red-600 hover:text-red-800">
+											<button onClick={() => deleteMethod(idx)} className="text-red-400 hover:text-red-300">
 												<Trash2 size={10} />
 											</button>
 										</div>
@@ -302,7 +302,7 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 						onDeleteClass(selectedClass.id);
 						onClose();
 					}}
-					className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600 flex items-center justify-center gap-2"
+					className="w-full bg-red-600 text-white p-2 rounded hover:bg-red-700 flex items-center justify-center gap-2"
 				>
 					<Trash2 size={16} />
 					Удалить класс
