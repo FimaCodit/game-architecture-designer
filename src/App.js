@@ -45,21 +45,21 @@ const AppContent = () => {
 		selectedClass,
 		setSelectedClass,
 		draggedClass,
-		isDraggingMultiple, // Добавляем
-		draggedMultipleClasses, // Добавляем
+		isDraggingMultiple,
+		draggedMultipleClasses,
 		newClassForm,
 		setNewClassForm,
 		classes,
 		classCategories,
 		addCustomClass,
 		deleteClass,
+		deleteMultipleClasses, // Добавляем
 		updateClassProperty,
 		addProperty,
 		addMethod,
 		handleMouseDown,
 		handleDragMove,
 		handleDragEnd,
-		// Добавляем функции буфера обмена
 		copyClass,
 		pasteClass,
 		hasCopiedClass,
@@ -155,6 +155,24 @@ const AppContent = () => {
 		setSelectedClass(null);
 	};
 
+	// Обработчик кастомного события удаления
+	useEffect(() => {
+		const handleDeleteSelected = (e) => {
+			const classIds = e.detail;
+			if (classIds && classIds.length > 0) {
+				const confirmMessage = `Удалить ${classIds.length} ${classIds.length === 1 ? "класс" : classIds.length < 5 ? "класса" : "классов"}?`;
+
+				if (window.confirm(confirmMessage)) {
+					deleteMultipleClasses(classIds);
+					clearSelection(); // Очищаем выделение после удаления
+				}
+			}
+		};
+
+		document.addEventListener("deleteSelectedClasses", handleDeleteSelected);
+		return () => document.removeEventListener("deleteSelectedClasses", handleDeleteSelected);
+	}, [deleteMultipleClasses, clearSelection]);
+
 	return (
 		<div className="h-screen flex bg-gray-50 relative">
 			<Sidebar
@@ -193,6 +211,7 @@ const AppContent = () => {
 				addProperty={addProperty}
 				addMethod={addMethod}
 				deleteClass={deleteClass}
+				deleteMultipleClasses={deleteMultipleClasses} // Добавляем
 				loading={loading}
 				error={error}
 				syncStatus={syncStatus}

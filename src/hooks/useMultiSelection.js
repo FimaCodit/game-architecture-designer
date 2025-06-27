@@ -20,6 +20,14 @@ export const useMultiSelection = (classes, localCamera, canvasRef) => {
 			if (isCtrlOrCmd && !isSelectionMode) {
 				setIsSelectionMode(true);
 			}
+
+			// Обработка клавиши Delete для множественного выделения
+			if (e.key === "Delete" && selectedClasses.length > 0) {
+				e.preventDefault();
+				// Этот обработчик будет использован в компоненте, который имеет доступ к deleteMultipleClasses
+				const event = new CustomEvent("deleteSelectedClasses", { detail: selectedClasses });
+				document.dispatchEvent(event);
+			}
 		};
 
 		const handleKeyUp = (e) => {
@@ -40,7 +48,7 @@ export const useMultiSelection = (classes, localCamera, canvasRef) => {
 			document.removeEventListener("keydown", handleKeyDown, true);
 			document.removeEventListener("keyup", handleKeyUp, true);
 		};
-	}, [isSelectionMode]);
+	}, [isSelectionMode, selectedClasses]);
 
 	// Начало выделения области
 	const startSelection = useCallback(

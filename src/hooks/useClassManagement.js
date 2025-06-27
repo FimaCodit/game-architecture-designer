@@ -87,6 +87,27 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		if (selectedClass?.id === classId) setSelectedClass(null);
 	};
 
+	// Новая функция для множественного удаления
+	const deleteMultipleClasses = useCallback(
+		(classIds) => {
+			if (!classIds || classIds.length === 0) return;
+
+			const updatedClasses = classes.filter((c) => !classIds.includes(c.id));
+			const updatedConnections = currentArchitecture.connections.filter((c) => !classIds.includes(c.from) && !classIds.includes(c.to));
+
+			updateCurrentArchitecture({
+				classes: updatedClasses,
+				connections: updatedConnections,
+			});
+
+			// Очищаем выбранный класс если он был удален
+			if (selectedClass && classIds.includes(selectedClass.id)) {
+				setSelectedClass(null);
+			}
+		},
+		[classes, currentArchitecture.connections, updateCurrentArchitecture, selectedClass],
+	);
+
 	const updateClassProperty = (classId, field, value) => {
 		const updatedClasses = classes.map((c) => (c.id === classId ? { ...c, [field]: value } : c));
 		updateCurrentArchitecture({ classes: updatedClasses });
@@ -236,8 +257,8 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		selectedClass,
 		setSelectedClass,
 		draggedClass,
-		isDraggingMultiple, // Добавляем
-		draggedMultipleClasses, // Добавляем
+		isDraggingMultiple,
+		draggedMultipleClasses,
 		dragOffset,
 		newClassForm,
 		setNewClassForm,
@@ -245,6 +266,7 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		classCategories,
 		addCustomClass,
 		deleteClass,
+		deleteMultipleClasses, // Добавляем новую функцию
 		updateClassProperty,
 		addProperty,
 		addMethod,

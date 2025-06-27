@@ -93,7 +93,7 @@ const WorkspaceArea = ({
 				{/* Слой выделения области */}
 				<SelectionOverlay selectionRect={selectionRect} isDrawingSelection={isDrawingSelection} />
 
-				{/* Сообщение о пустой области */}
+				{/* Сообщение о пустой области - показываем только здесь */}
 				{classes.length === 0 && (
 					<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
 						<div className="text-center text-gray-500">

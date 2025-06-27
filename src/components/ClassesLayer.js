@@ -1,7 +1,6 @@
 import React from "react";
 import ClassBlock from "./ClassBlock"; // Добавляем импорт
 import { getDynamicClassColor } from "../utils/classColors";
-import EmptyStateMessage from "./EmptyStateMessage";
 
 const ClassesLayer = ({
 	classes,
@@ -37,7 +36,7 @@ const ClassesLayer = ({
 				);
 			})}
 
-			{classes.length === 0 && <EmptyStateMessage />}
+			{/* Убираем EmptyStateMessage отсюда, так как он показывается в WorkspaceArea */}
 		</>
 	);
 };
