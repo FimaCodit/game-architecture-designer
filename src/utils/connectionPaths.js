@@ -178,6 +178,8 @@ export const calculateConnectionPath = (fromClass, toClass, localCamera) => {
 export const calculatePreviewPath = (preview, localCamera) => {
 	if (!preview.from || !preview.to) return "";
 
-	// Для предварительного просмотра используем простую линию
-	return `M ${preview.from.x * localCamera.zoom + localCamera.offsetX} ${preview.from.y * localCamera.zoom + localCamera.offsetY} L ${preview.to.x} ${preview.to.y}`;
+	// Для предварительного просмотра используем координаты без дополнительных трансформаций
+	// preview.from уже содержит трансформированные координаты от startConnection
+	// preview.to содержит координаты мыши из updateConnectionPreview
+	return `M ${preview.from.x} ${preview.from.y} L ${preview.to.x} ${preview.to.y}`;
 };

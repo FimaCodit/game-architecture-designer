@@ -77,25 +77,19 @@ export const useConnections = (currentArchitecture, updateCurrentArchitecture, g
 	);
 
 	const updateConnectionPreview = useCallback(
-		(mousePosition) => {
-			if (connectionStart && isConnecting && localCamera && canvasRef?.current) {
-				// Преобразуем координаты мыши в систему координат канваса
-				const canvasRect = canvasRef.current.getBoundingClientRect();
+		(e) => {
+			if (!connectionStart || !canvasRef.current) return;
 
-				// Вычисляем координаты в системе координат классов (без учета трансформации камеры)
-				const canvasX = (mousePosition.x - canvasRect.left - localCamera.offsetX) / localCamera.zoom;
-				const canvasY = (mousePosition.y - canvasRect.top - localCamera.offsetY) / localCamera.zoom;
+			const rect = canvasRef.current.getBoundingClientRect();
+			const mouseX = e.clientX - rect.left;
+			const mouseY = e.clientY - rect.top;
 
-				setConnectionPreview({
-					from: connectionStart.position,
-					to: {
-						x: canvasX,
-						y: canvasY,
-					},
-				});
-			}
+			setConnectionPreview({
+				from: connectionStart.position,
+				to: { x: mouseX, y: mouseY },
+			});
 		},
-		[connectionStart, isConnecting, localCamera, canvasRef],
+		[connectionStart, canvasRef],
 	);
 
 	const changeConnectionType = useCallback((newType) => {

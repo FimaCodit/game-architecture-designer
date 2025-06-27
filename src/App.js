@@ -117,6 +117,7 @@ const AppContent = () => {
 		handleMouseDown,
 		selectedClasses,
 		isClassSelected,
+		localCamera, // Добавляем камеру
 	});
 
 	// Обновленный обработчик клика по канвасу
