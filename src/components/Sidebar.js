@@ -1,10 +1,13 @@
 import React from "react";
+import AuthComponent from "./AuthComponent";
+import SyncStatus from "./SyncStatus";
 import ArchitectureManager from "./ArchitectureManager";
 import CategoryManagement from "./CategoryManagement";
 import ClassCreator from "./ClassCreator";
 import ClassDetails from "./ClassDetails";
 import ExportControls from "./ExportControls";
 import ConnectionControls from "./ConnectionControls";
+import { useAuth } from "../contexts/AuthContext";
 
 const Sidebar = ({
 	isVisible,
@@ -24,19 +27,66 @@ const Sidebar = ({
 	toggleConnectionMode,
 	connectionsCount,
 	currentArchitecture,
-	localCamera,
-	zoomIn,
-	zoomOut,
-	resetCamera,
 	selectedClass,
 	updateClassProperty,
 	addProperty,
 	addMethod,
 	deleteClass,
+	loading,
+	error,
+	syncStatus,
+	clearError,
+	forceSync,
+	isAuthenticated,
 }) => {
+	const { user } = useAuth();
+
 	return (
 		<div className={`bg-white border-r border-gray-200 overflow-y-auto transition-all duration-300 ${isVisible ? "w-80 p-4" : "w-0 p-0"}`}>
 			<div className={`${isVisible ? "block" : "hidden"}`}>
+				{/* Компонент авторизации */}
+				<AuthComponent />
+
+				{/* Статус синхронизации */}
+				{user && (
+					<div className="mb-4">
+						<SyncStatus syncStatus={syncStatus} error={error} onForceSync={forceSync} onClearError={clearError} />
+					</div>
+				)}
+
+				{/* Индикатор загрузки */}
+				{loading && (
+					<div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+						<div className="flex items-center gap-2">
+							<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+							<span className="text-sm text-blue-700">Загрузка данных...</span>
+						</div>
+					</div>
+				)}
+
+				{/* Уведомление об ошибке */}
+				{error && (
+					<div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<span className="text-sm text-red-700">Ошибка:</span>
+								<span className="text-xs text-red-600">{error}</span>
+							</div>
+							<button onClick={clearError} className="text-red-600 hover:text-red-800 text-xs underline">
+								Закрыть
+							</button>
+						</div>
+					</div>
+				)}
+
+				{/* Предупреждение для локального режима */}
+				{!user && (
+					<div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+						<div className="text-sm text-amber-800 mb-1">⚠️ Локальный режим</div>
+						<div className="text-xs text-amber-700">Ваша работа не сохраняется. Войдите в аккаунт для синхронизации между устройствами.</div>
+					</div>
+				)}
+
 				<ArchitectureManager
 					architectures={architectures}
 					currentArchitectureId={currentArchitectureId}
@@ -44,6 +94,7 @@ const Sidebar = ({
 					createNewArchitecture={createNewArchitecture}
 					deleteArchitecture={deleteArchitecture}
 					renameArchitecture={renameArchitecture}
+					isAuthenticated={isAuthenticated}
 				/>
 
 				<h2 className="text-xl font-bold mb-4">Конструктор архитектуры</h2>

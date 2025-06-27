@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AuthProvider } from "./contexts/AuthContext";
 import { useArchitectures } from "./hooks/useArchitectures";
 import { useCamera } from "./hooks/useCamera";
 import { useClassManagement } from "./hooks/useClassManagement";
@@ -13,10 +14,10 @@ import WorkspaceArea from "./components/WorkspaceArea";
 import FloatingCameraControls from "./components/FloatingCameraControls";
 import "./App.css";
 
-const App = () => {
+const AppContent = () => {
 	const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
-	// Основные хуки для управления состоянием
+	// Основные хуки для управления состоянием (теперь с Firebase)
 	const {
 		architectures,
 		currentArchitecture,
@@ -27,6 +28,12 @@ const App = () => {
 		deleteArchitecture,
 		renameArchitecture,
 		generateId,
+		loading,
+		error,
+		syncStatus,
+		clearError,
+		forceSync,
+		isAuthenticated,
 	} = useArchitectures();
 
 	const { localCamera, canvasRef, handleCanvasMouseDown, zoomIn, zoomOut, resetCamera, isPanning } = useCamera(currentArchitecture.camera, updateCurrentArchitecture);
@@ -113,7 +120,17 @@ const App = () => {
 				updateCurrentArchitecture={updateCurrentArchitecture}
 				newClassForm={newClassForm}
 				setNewClassForm={setNewClassForm}
-				addCustomClass={() => addCustomClass(localCamera)}
+				addCustomClass={async () => {
+					console.log("App: addCustomClass wrapper called");
+					try {
+						const result = await addCustomClass(localCamera);
+						console.log("App: addCustomClass result:", result);
+						return result;
+					} catch (error) {
+						console.error("App: Error in addCustomClass wrapper:", error);
+						throw error;
+					}
+				}}
 				isConnecting={isConnecting}
 				toggleConnectionMode={toggleConnectionMode}
 				connectionsCount={connections.length}
@@ -126,6 +143,12 @@ const App = () => {
 					deleteClass(classId);
 					setSelectedClass(null);
 				}}
+				loading={loading}
+				error={error}
+				syncStatus={syncStatus}
+				clearError={clearError}
+				forceSync={forceSync}
+				isAuthenticated={isAuthenticated}
 			/>
 
 			<SidebarToggle isSidebarVisible={isSidebarVisible} setIsSidebarVisible={setIsSidebarVisible} />
@@ -149,6 +172,14 @@ const App = () => {
 
 			<FloatingCameraControls localCamera={localCamera} zoomIn={zoomIn} zoomOut={zoomOut} resetCamera={resetCamera} />
 		</div>
+	);
+};
+
+const App = () => {
+	return (
+		<AuthProvider>
+			<AppContent />
+		</AuthProvider>
 	);
 };
 

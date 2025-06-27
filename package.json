@@ -1,45 +1,46 @@
 {
-  "name": "game-architecture-designer",
-  "version": "1.0.0",
-  "homepage": "https://fimacodit.github.io/game-architecture-designer",
-  "description": "Визуальный конструктор архитектуры мобильных игр",
-  "main": "src/index.js",
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "keywords": [
-    "game-development",
-    "architecture",
-    "visual-design",
-    "react",
-    "mobile-games"
-  ],
-  "author": "Your Name",
-  "license": "MIT",
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "lucide-react": "^0.263.1"
-  },
-  "devDependencies": {
-    "tailwindcss": "^3.3.0",
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.24"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+	"name": "game-architecture-designer",
+	"version": "1.0.0",
+	"homepage": "https://fimacodit.github.io/game-architecture-designer",
+	"description": "Визуальный конструктор архитектуры мобильных игр",
+	"main": "src/index.js",
+	"scripts": {
+		"start": "react-scripts start",
+		"build": "REACT_APP_FIREBASE_API_KEY=$REACT_APP_FIREBASE_API_KEY REACT_APP_FIREBASE_AUTH_DOMAIN=$REACT_APP_FIREBASE_AUTH_DOMAIN REACT_APP_FIREBASE_PROJECT_ID=$REACT_APP_FIREBASE_PROJECT_ID REACT_APP_FIREBASE_STORAGE_BUCKET=$REACT_APP_FIREBASE_STORAGE_BUCKET REACT_APP_FIREBASE_MESSAGING_SENDER_ID=$REACT_APP_FIREBASE_MESSAGING_SENDER_ID REACT_APP_FIREBASE_APP_ID=$REACT_APP_FIREBASE_APP_ID react-scripts build",
+		"test": "react-scripts test",
+		"eject": "react-scripts eject"
+	},
+	"keywords": [
+		"game-development",
+		"architecture",
+		"visual-design",
+		"react",
+		"mobile-games"
+	],
+	"author": "Your Name",
+	"license": "MIT",
+	"dependencies": {
+		"firebase": "^10.14.1",
+		"lucide-react": "^0.263.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-scripts": "5.0.1"
+	},
+	"devDependencies": {
+		"autoprefixer": "^10.4.14",
+		"postcss": "^8.4.24",
+		"tailwindcss": "^3.3.0"
+	},
+	"browserslist": {
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	}
 }

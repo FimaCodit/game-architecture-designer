@@ -1,18 +1,22 @@
 import React, { useState } from "react";
-import { Plus, Trash2, Edit2, Check, X, FolderOpen, MoreHorizontal } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, FolderOpen, MoreHorizontal, Cloud, HardDrive } from "lucide-react";
 
-const ArchitectureManager = ({ architectures, currentArchitectureId, setCurrentArchitectureId, createNewArchitecture, deleteArchitecture, renameArchitecture }) => {
+const ArchitectureManager = ({ architectures, currentArchitectureId, setCurrentArchitectureId, createNewArchitecture, deleteArchitecture, renameArchitecture, isAuthenticated }) => {
 	const [showNewArchitectureForm, setShowNewArchitectureForm] = useState(false);
 	const [newArchitectureName, setNewArchitectureName] = useState("");
 	const [editingArchId, setEditingArchId] = useState(null);
 	const [editingName, setEditingName] = useState("");
 	const [showActions, setShowActions] = useState(false);
 
-	const handleCreateArchitecture = () => {
+	const handleCreateArchitecture = async () => {
 		if (newArchitectureName.trim()) {
-			createNewArchitecture(newArchitectureName.trim());
-			setNewArchitectureName("");
-			setShowNewArchitectureForm(false);
+			try {
+				await createNewArchitecture(newArchitectureName.trim());
+				setNewArchitectureName("");
+				setShowNewArchitectureForm(false);
+			} catch (error) {
+				console.error("Error creating architecture:", error);
+			}
 		}
 	};
 
@@ -26,9 +30,13 @@ const ArchitectureManager = ({ architectures, currentArchitectureId, setCurrentA
 		setEditingName(currentName);
 	};
 
-	const saveEditName = () => {
+	const saveEditName = async () => {
 		if (editingName.trim()) {
-			renameArchitecture(editingArchId, editingName.trim());
+			try {
+				await renameArchitecture(editingArchId, editingName.trim());
+			} catch (error) {
+				console.error("Error renaming architecture:", error);
+			}
 		}
 		setEditingArchId(null);
 		setEditingName("");
@@ -55,32 +63,45 @@ const ArchitectureManager = ({ architectures, currentArchitectureId, setCurrentA
 		}
 	};
 
+	const handleDeleteArchitecture = async () => {
+		if (window.confirm("Вы уверены, что хотите удалить эту архитектуру?")) {
+			try {
+				await deleteArchitecture(currentArchitectureId);
+				setShowActions(false);
+			} catch (error) {
+				console.error("Error deleting architecture:", error);
+			}
+		}
+	};
+
 	const currentArch = architectures.find((arch) => arch.id === currentArchitectureId);
 
 	return (
 		<div className="mb-6">
 			<div className="flex items-center gap-2 mb-4">
-				<FolderOpen size={20} className="text-blue-600" />
-				<h2 className="text-lg font-bold text-gray-800">Архитектуры</h2>
+				{isAuthenticated ? <Cloud size={20} className="text-blue-600" /> : <HardDrive size={20} className="text-gray-600" />}
+				<h2 className="text-lg font-bold text-gray-800">{isAuthenticated ? "Мои архитектуры" : "Локальные архитектуры"}</h2>
 			</div>
 
 			{/* Выбор текущей архитектуры */}
-			<div className="mb-4">
-				<label className="block text-sm font-medium mb-2 text-gray-700">Текущая архитектура</label>
-				<select
-					value={currentArchitectureId}
-					onChange={(e) => setCurrentArchitectureId(e.target.value)}
-					className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-				>
-					{architectures.map((arch) => (
-						<option key={arch.id} value={arch.id}>
-							{arch.name} ({arch.classes.length} классов)
-						</option>
-					))}
-				</select>
-			</div>
+			{isAuthenticated && architectures.length > 1 && (
+				<div className="mb-4">
+					<label className="block text-sm font-medium mb-2 text-gray-700">Текущая архитектура</label>
+					<select
+						value={currentArchitectureId || ""}
+						onChange={(e) => setCurrentArchitectureId(e.target.value)}
+						className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+					>
+						{architectures.map((arch) => (
+							<option key={arch.id} value={arch.id}>
+								{arch.name} ({arch.classes?.length || 0} классов)
+							</option>
+						))}
+					</select>
+				</div>
+			)}
 
-			{/* Редактирование имени текущей архитектуры */}
+			{/* Информация о текущей архитектуре */}
 			{currentArch && (
 				<div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
 					{editingArchId === currentArchitectureId ? (
@@ -108,8 +129,9 @@ const ArchitectureManager = ({ architectures, currentArchitectureId, setCurrentA
 							<div>
 								<div className="font-medium text-gray-800">{currentArch.name}</div>
 								<div className="text-sm text-gray-500">
-									{currentArch.classes.length} классов, {currentArch.connections?.length || 0} связей
+									{currentArch.classes?.length || 0} классов, {currentArch.connections?.length || 0} связей
 								</div>
+								{currentArch.lastModified && <div className="text-xs text-gray-400">Изменено: {new Date(currentArch.lastModified).toLocaleString()}</div>}
 							</div>
 							<div className="flex gap-1">
 								<button
@@ -119,7 +141,7 @@ const ArchitectureManager = ({ architectures, currentArchitectureId, setCurrentA
 								>
 									<Edit2 size={16} />
 								</button>
-								{architectures.length > 1 && (
+								{isAuthenticated && architectures.length > 1 && (
 									<button onClick={() => setShowActions(!showActions)} className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded" title="Дополнительные действия">
 										<MoreHorizontal size={16} />
 									</button>
@@ -131,15 +153,10 @@ const ArchitectureManager = ({ architectures, currentArchitectureId, setCurrentA
 			)}
 
 			{/* Дополнительные действия */}
-			{showActions && architectures.length > 1 && (
+			{showActions && isAuthenticated && architectures.length > 1 && (
 				<div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
 					<button
-						onClick={() => {
-							if (window.confirm("Вы уверены, что хотите удалить эту архитектуру?")) {
-								deleteArchitecture(currentArchitectureId);
-								setShowActions(false);
-							}
-						}}
+						onClick={handleDeleteArchitecture}
 						className="w-full p-2 bg-red-100 text-red-700 border border-red-300 rounded hover:bg-red-200 transition-colors flex items-center justify-center gap-1"
 					>
 						<Trash2 size={14} />
@@ -168,7 +185,7 @@ const ArchitectureManager = ({ architectures, currentArchitectureId, setCurrentA
 								disabled={!newArchitectureName.trim()}
 								className="flex-1 py-2 px-3 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
 							>
-								Создать
+								{isAuthenticated ? "Создать в облаке" : "Создать локально"}
 							</button>
 							<button onClick={handleCancel} className="flex-1 py-2 px-3 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors text-sm">
 								Отмена
@@ -182,9 +199,24 @@ const ArchitectureManager = ({ architectures, currentArchitectureId, setCurrentA
 					className="w-full mb-4 p-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
 				>
 					<Plus size={16} />
-					Создать новую архитектуру
+					{isAuthenticated ? "Создать новую архитектуру" : "Создать архитектуру"}
 				</button>
 			)}
+
+			{/* Информация о хранении */}
+			<div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
+				{isAuthenticated ? (
+					<div className="flex items-center gap-1">
+						<Cloud size={12} />
+						<span>Данные синхронизируются с облаком</span>
+					</div>
+				) : (
+					<div className="flex items-center gap-1">
+						<HardDrive size={12} />
+						<span>Данные сохраняются локально</span>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 };

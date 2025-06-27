@@ -15,25 +15,49 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		}
 	}, [classCategories]);
 
-	const addCustomClass = (localCamera) => {
-		if (!newClassForm.name.trim()) return false;
+	const addCustomClass = async (localCamera) => {
+		console.log("useClassManagement: addCustomClass called");
+		console.log("newClassForm:", newClassForm);
+		console.log("localCamera:", localCamera);
+		console.log("classCategories:", classCategories);
+		console.log("classes count before:", classes.length);
 
-		const newClass = {
-			id: generateId(),
-			name: newClassForm.name,
-			type: newClassForm.type,
-			position: {
-				x: (100 - localCamera.offsetX) / localCamera.zoom,
-				y: (100 - localCamera.offsetY) / localCamera.zoom,
-			},
-			properties: [],
-			methods: [],
-		};
+		if (!newClassForm.name.trim()) {
+			console.warn("useClassManagement: Empty class name");
+			return false;
+		}
 
-		const updatedClasses = [...classes, newClass];
-		updateCurrentArchitecture({ classes: updatedClasses });
-		setNewClassForm({ name: "", type: classCategories[0] });
-		return true;
+		try {
+			const newClass = {
+				id: generateId(),
+				name: newClassForm.name.trim(),
+				type: newClassForm.type || classCategories[0],
+				position: {
+					x: (100 - localCamera.offsetX) / localCamera.zoom,
+					y: (100 - localCamera.offsetY) / localCamera.zoom,
+				},
+				properties: [],
+				methods: [],
+			};
+
+			console.log("useClassManagement: Creating new class:", newClass);
+
+			const updatedClasses = [...classes, newClass];
+			console.log("useClassManagement: Updated classes array length:", updatedClasses.length);
+
+			console.log("useClassManagement: Calling updateCurrentArchitecture...");
+			await updateCurrentArchitecture({ classes: updatedClasses });
+			console.log("useClassManagement: updateCurrentArchitecture completed");
+
+			console.log("useClassManagement: Resetting form...");
+			setNewClassForm({ name: "", type: classCategories[0] || "" });
+			console.log("useClassManagement: Form reset completed");
+
+			return true;
+		} catch (error) {
+			console.error("useClassManagement: Error in addCustomClass:", error);
+			throw error;
+		}
 	};
 
 	const deleteClass = (classId) => {
