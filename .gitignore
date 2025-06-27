@@ -1,0 +1,42 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+.pnpm-debug.log
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build output
+dist/
+build/
+out/
+temp/
+tmp/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Misc
+coverage/
+.cache/
+.parcel-cache/
+.next/
+.svelte-kit/
+.storybook/
