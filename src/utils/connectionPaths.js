@@ -101,28 +101,69 @@ export const calculateConnectionPath = (fromClass, toClass, localCamera) => {
 	const fromPoint = getConnectionPoint(fromClass, toClass, localCamera);
 	const toPoint = getConnectionPoint(toClass, fromClass, localCamera);
 
-	// Создаем плавную кривую Безье между точками на краях классов
+	// Создаем кривые Безье с перпендикулярными входами/выходами
 	const deltaX = toPoint.x - fromPoint.x;
 	const deltaY = toPoint.y - fromPoint.y;
 
-	// Контрольные точки для кривой Безье
+	// Контрольные точки для перпендикулярных входов/выходов
 	const controlOffset = Math.min(Math.abs(deltaX), Math.abs(deltaY)) * 0.5 + 50;
 
 	let control1X, control1Y, control2X, control2Y;
 
-	// Определяем направление контрольных точек на основе направления связи
-	if (Math.abs(deltaX) > Math.abs(deltaY)) {
-		// Горизонтальная связь
-		control1X = fromPoint.x + Math.sign(deltaX) * controlOffset;
+	// Определяем направление точек выхода/входа
+	const fromClassSize = getClassSize(fromClass, localCamera);
+	const toClassSize = getClassSize(toClass, localCamera);
+
+	const fromClassWidth = fromClassSize.width * localCamera.zoom;
+	const fromClassHeight = fromClassSize.height * localCamera.zoom;
+	const fromClassLeft = fromClass.position.x * localCamera.zoom + localCamera.offsetX;
+	const fromClassTop = fromClass.position.y * localCamera.zoom + localCamera.offsetY;
+	const fromClassRight = fromClassLeft + fromClassWidth;
+	const fromClassBottom = fromClassTop + fromClassHeight;
+
+	const toClassWidth = toClassSize.width * localCamera.zoom;
+	const toClassHeight = toClassSize.height * localCamera.zoom;
+	const toClassLeft = toClass.position.x * localCamera.zoom + localCamera.offsetX;
+	const toClassTop = toClass.position.y * localCamera.zoom + localCamera.offsetY;
+	const toClassRight = toClassLeft + toClassWidth;
+	const toClassBottom = toClassTop + toClassHeight;
+
+	// Определяем откуда выходит линия (какая сторона класса)
+	if (fromPoint.x === fromClassRight) {
+		// Выход справа - контрольная точка идет горизонтально вправо
+		control1X = fromPoint.x + controlOffset;
 		control1Y = fromPoint.y;
-		control2X = toPoint.x - Math.sign(deltaX) * controlOffset;
-		control2Y = toPoint.y;
-	} else {
-		// Вертикальная связь
+	} else if (fromPoint.x === fromClassLeft) {
+		// Выход слева - контрольная точка идет горизонтально влево
+		control1X = fromPoint.x - controlOffset;
+		control1Y = fromPoint.y;
+	} else if (fromPoint.y === fromClassBottom) {
+		// Выход снизу - контрольная точка идет вертикально вниз
 		control1X = fromPoint.x;
-		control1Y = fromPoint.y + Math.sign(deltaY) * controlOffset;
+		control1Y = fromPoint.y + controlOffset;
+	} else {
+		// Выход сверху - контрольная точка идет вертикально вверх
+		control1X = fromPoint.x;
+		control1Y = fromPoint.y - controlOffset;
+	}
+
+	// Определяем куда входит линия (какая сторона целевого класса)
+	if (toPoint.x === toClassRight) {
+		// Вход справа - контрольная точка идет горизонтально вправо
+		control2X = toPoint.x + controlOffset;
+		control2Y = toPoint.y;
+	} else if (toPoint.x === toClassLeft) {
+		// Вход слева - контрольная точка идет горизонтально влево
+		control2X = toPoint.x - controlOffset;
+		control2Y = toPoint.y;
+	} else if (toPoint.y === toClassBottom) {
+		// Вход снизу - контрольная точка идет вертикально вниз
 		control2X = toPoint.x;
-		control2Y = toPoint.y - Math.sign(deltaY) * controlOffset;
+		control2Y = toPoint.y + controlOffset;
+	} else {
+		// Вход сверху - контрольная точка идет вертикально вверх
+		control2X = toPoint.x;
+		control2Y = toPoint.y - controlOffset;
 	}
 
 	return `M ${fromPoint.x} ${fromPoint.y} C ${control1X} ${control1Y}, ${control2X} ${control2Y}, ${toPoint.x} ${toPoint.y}`;
