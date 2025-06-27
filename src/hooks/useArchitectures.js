@@ -79,45 +79,34 @@ export const useArchitectures = () => {
 				console.warn("Profile creation failed, but continuing:", profileError);
 			}
 
-			// Подписываемся на изменения архитектур в реальном времени
-			if (unsubscribeRef.current) {
-				unsubscribeRef.current();
+			// ИЗМЕНЕНО: Загружаем архитектуры один раз, без realtime подписки
+			const userArchitectures = await firestoreService.getUserArchitectures(user.uid);
+			console.log("useArchitectures: Loaded architectures from Firebase:", userArchitectures.length);
+
+			setArchitectures(userArchitectures);
+
+			// Если у пользователя нет архитектур, создаем дефолтную
+			if (userArchitectures.length === 0) {
+				console.log("useArchitectures: No architectures found, creating default...");
+				try {
+					await createNewArchitecture("Моя первая архитектура");
+					return;
+				} catch (error) {
+					console.error("useArchitectures: Error creating default architecture:", error);
+				}
 			}
 
-			unsubscribeRef.current = firestoreService.subscribeToUserArchitectures(user.uid, async (userArchitectures) => {
-				console.log("useArchitectures: Received architectures from Firebase:", userArchitectures.length);
+			// Устанавливаем текущую архитектуру если она не выбрана
+			if (!currentArchitectureId && userArchitectures.length > 0) {
+				console.log("useArchitectures: Setting current architecture to:", userArchitectures[0].id);
+				setCurrentArchitectureId(userArchitectures[0].id);
+			}
 
-				// НЕ обновляем если есть pending изменения
-				if (updateTimeoutRef.current) {
-					console.log("useArchitectures: Skipping Firebase update - local changes pending");
-					return;
-				}
-
-				setArchitectures(userArchitectures);
-
-				// Если у пользователя нет архитектур, создаем дефолтную
-				if (userArchitectures.length === 0) {
-					console.log("useArchitectures: No architectures found, creating default...");
-					try {
-						await createNewArchitecture("Моя первая архитектура");
-						return; // Выходим, т.к. создание архитектуры вызовет повторный вызов этого callback
-					} catch (error) {
-						console.error("useArchitectures: Error creating default architecture:", error);
-					}
-				}
-
-				// Устанавливаем текущую архитектуру если она не выбрана
-				if (!currentArchitectureId && userArchitectures.length > 0) {
-					console.log("useArchitectures: Setting current architecture to:", userArchitectures[0].id);
-					setCurrentArchitectureId(userArchitectures[0].id);
-				}
-
-				// Если выбранная архитектура была удалена, выбираем первую доступную
-				if (currentArchitectureId && !userArchitectures.find((arch) => arch.id === currentArchitectureId)) {
-					console.log("useArchitectures: Current architecture not found, switching to:", userArchitectures[0]?.id);
-					setCurrentArchitectureId(userArchitectures[0]?.id || null);
-				}
-			});
+			// Если выбранная архитектура была удалена, выбираем первую доступную
+			if (currentArchitectureId && !userArchitectures.find((arch) => arch.id === currentArchitectureId)) {
+				console.log("useArchitectures: Current architecture not found, switching to:", userArchitectures[0]?.id);
+				setCurrentArchitectureId(userArchitectures[0]?.id || null);
+			}
 		} catch (err) {
 			console.error("Error loading architectures:", err);
 			setError(err.message);
@@ -131,9 +120,6 @@ export const useArchitectures = () => {
 		async (updates) => {
 			console.log("useArchitectures: updateCurrentArchitecture called");
 			console.log("updates:", updates);
-			console.log("user:", user ? user.uid : "no user");
-			console.log("currentArchitectureId:", currentArchitectureId);
-			console.log("architectures.length:", architectures.length);
 
 			if (user && currentArchitectureId) {
 				console.log("useArchitectures: Authenticated user mode");
@@ -141,10 +127,7 @@ export const useArchitectures = () => {
 				// Сразу обновляем локальное состояние
 				setArchitectures((prev) => {
 					const updated = prev.map((arch) => (arch.id === currentArchitectureId ? { ...arch, ...updates, lastModified: new Date().toISOString() } : arch));
-					console.log("useArchitectures: Local state updated, architectures count:", updated.length);
-					if (updates.classes) {
-						console.log("useArchitectures: Classes in updated architecture:", updated.find((a) => a.id === currentArchitectureId)?.classes?.length);
-					}
+					console.log("useArchitectures: Local state updated");
 					return updated;
 				});
 
@@ -163,32 +146,25 @@ export const useArchitectures = () => {
 						await firestoreService.updateArchitecture(currentArchitectureId, updates);
 						console.log("useArchitectures: Firebase update successful");
 						setSyncStatus("synced");
-						updateTimeoutRef.current = null; // Очищаем ссылку после успешного обновления
+						updateTimeoutRef.current = null;
 					} catch (err) {
 						console.error("useArchitectures: Error updating architecture:", err);
 						setSyncStatus("error");
 						setError(err.message);
-						updateTimeoutRef.current = null; // Очищаем ссылку при ошибке
+						updateTimeoutRef.current = null;
 					}
-				}, 500); // Уменьшаем задержку до 500мс для более быстрой синхронизации
+				}, 300); // Еще быстрее - 300мс
 			} else {
-				console.log("useArchitectures: Local user mode - no current architecture ID or not authenticated");
+				console.log("useArchitectures: Local user mode");
 				// Для неавторизованных пользователей обновляем локально
-				setLocalArchitecture((prev) => {
-					const updated = {
-						...prev,
-						...updates,
-						lastModified: new Date().toISOString(),
-					};
-					console.log("useArchitectures: Local architecture updated:", updated);
-					if (updates.classes) {
-						console.log("useArchitectures: Classes in local architecture:", updated.classes?.length);
-					}
-					return updated;
-				});
+				setLocalArchitecture((prev) => ({
+					...prev,
+					...updates,
+					lastModified: new Date().toISOString(),
+				}));
 			}
 		},
-		[user, currentArchitectureId, architectures.length],
+		[user, currentArchitectureId],
 	);
 
 	// Создание новой архитектуры
@@ -212,8 +188,8 @@ export const useArchitectures = () => {
 					const createdArch = await firestoreService.createArchitecture(user.uid, newArchitecture);
 					console.log("useArchitectures: Architecture created with ID:", createdArch.id);
 
-					// Архитектура будет добавлена через подписку на изменения
-					// Но устанавливаем её как текущую сразу
+					// ИЗМЕНЕНО: Обновляем локальное состояние сразу
+					setArchitectures((prev) => [...prev, createdArch]);
 					setCurrentArchitectureId(createdArch.id);
 				} catch (err) {
 					console.error("useArchitectures: Error creating architecture:", err);
@@ -247,10 +223,13 @@ export const useArchitectures = () => {
 				setLoading(true);
 				await firestoreService.deleteArchitecture(archId);
 
+				// ИЗМЕНЕНО: Обновляем локальное состояние сразу
+				const updatedArchitectures = architectures.filter((arch) => arch.id !== archId);
+				setArchitectures(updatedArchitectures);
+
 				// Выбираем другую архитектуру если удаляем текущую
 				if (currentArchitectureId === archId) {
-					const remainingArchs = architectures.filter((arch) => arch.id !== archId);
-					setCurrentArchitectureId(remainingArchs[0]?.id || null);
+					setCurrentArchitectureId(updatedArchitectures[0]?.id || null);
 				}
 
 				return true;
@@ -270,12 +249,18 @@ export const useArchitectures = () => {
 		async (archId, newName) => {
 			if (user && archId) {
 				try {
+					// ИЗМЕНЕНО: Сначала обновляем локально
+					setArchitectures((prev) => prev.map((arch) => (arch.id === archId ? { ...arch, name: newName.trim() || "Без названия", lastModified: new Date().toISOString() } : arch)));
+
+					// Затем отправляем в Firebase
 					await firestoreService.updateArchitecture(archId, {
 						name: newName.trim() || "Без названия",
 					});
 				} catch (err) {
 					console.error("Error renaming architecture:", err);
 					setError(err.message);
+					// Откатываем изменения при ошибке
+					loadUserArchitectures();
 				}
 			} else {
 				// Для локальной архитектуры
@@ -286,7 +271,7 @@ export const useArchitectures = () => {
 				}));
 			}
 		},
-		[user],
+		[user, loadUserArchitectures],
 	);
 
 	// Очистка ошибок
