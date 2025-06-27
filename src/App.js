@@ -1,16 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { useArchitectures } from "./hooks/useArchitectures";
 import { useCamera } from "./hooks/useCamera";
 import { useClassManagement } from "./hooks/useClassManagement";
-import ArchitectureManager from "./components/ArchitectureManager";
-import CategoryManagement from "./components/CategoryManagement";
-import ClassCreator from "./components/ClassCreator";
-import CameraControls from "./components/CameraControls";
-import ClassDetails from "./components/ClassDetails";
-import ExportControls from "./components/ExportControls";
-import Canvas from "./components/Canvas";
+import { useConnections } from "./hooks/useConnections";
+import { useGlobalEventHandlers } from "./hooks/useGlobalEventHandlers";
+import { createClassClickHandler } from "./handlers/classClickHandler";
+import { createCanvasClickHandler } from "./handlers/canvasClickHandler";
+import { createConnectionModeToggler } from "./handlers/connectionModeHandler";
+import Sidebar from "./components/Sidebar";
+import SidebarToggle from "./components/SidebarToggle";
+import WorkspaceArea from "./components/WorkspaceArea";
+import "./App.css";
 
 const App = () => {
+	const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+
 	// Основные хуки для управления состоянием
 	const {
 		architectures,
@@ -20,11 +24,11 @@ const App = () => {
 		updateCurrentArchitecture,
 		createNewArchitecture,
 		deleteArchitecture,
-		duplicateArchitecture,
+		renameArchitecture,
 		generateId,
 	} = useArchitectures();
 
-	const { localCamera, canvasRef, handleCanvasMouseDown, zoomIn, zoomOut, resetCamera } = useCamera(currentArchitecture.camera, updateCurrentArchitecture);
+	const { localCamera, canvasRef, handleCanvasMouseDown, zoomIn, zoomOut, resetCamera, isPanning } = useCamera(currentArchitecture.camera, updateCurrentArchitecture);
 
 	const {
 		selectedClass,
@@ -44,73 +48,107 @@ const App = () => {
 		handleDragEnd,
 	} = useClassManagement(currentArchitecture, updateCurrentArchitecture, generateId);
 
+	const {
+		isConnecting,
+		connectionStart,
+		connectionPreview,
+		connections,
+		enableConnectionMode,
+		startConnection,
+		updateConnectionPreview,
+		finishConnection,
+		cancelConnection,
+		resetCurrentConnection,
+		deleteConnection,
+	} = useConnections(currentArchitecture, updateCurrentArchitecture, generateId, localCamera, canvasRef);
+
+	// Глобальная обработка событий
+	useGlobalEventHandlers({
+		draggedClass,
+		isConnecting,
+		connectionStart,
+		handleDragMove,
+		handleDragEnd,
+		updateConnectionPreview,
+		localCamera,
+		canvasRef,
+	});
+
+	// Обработчики событий
+	const handleClassClick = createClassClickHandler({
+		isConnecting,
+		connectionStart,
+		startConnection,
+		finishConnection,
+		handleMouseDown,
+	});
+
+	const handleCanvasClick = createCanvasClickHandler({
+		isConnecting,
+		connectionStart,
+		resetCurrentConnection,
+		setSelectedClass,
+	});
+
+	const toggleConnectionMode = createConnectionModeToggler({
+		isConnecting,
+		cancelConnection,
+		enableConnectionMode,
+		setSelectedClass,
+	});
+
 	return (
-		<div className="min-h-screen bg-gray-50 p-4">
-			<div className="max-w-7xl mx-auto">
-				<h1 className="text-3xl font-bold text-center mb-6 text-gray-800">Архитектор игровых систем</h1>
+		<div className="h-screen flex bg-gray-50 relative">
+			<Sidebar
+				isVisible={isSidebarVisible}
+				architectures={architectures}
+				currentArchitectureId={currentArchitectureId}
+				setCurrentArchitectureId={setCurrentArchitectureId}
+				createNewArchitecture={createNewArchitecture}
+				deleteArchitecture={deleteArchitecture}
+				renameArchitecture={renameArchitecture}
+				classCategories={classCategories}
+				classes={classes}
+				updateCurrentArchitecture={updateCurrentArchitecture}
+				newClassForm={newClassForm}
+				setNewClassForm={setNewClassForm}
+				addCustomClass={() => addCustomClass(localCamera)}
+				isConnecting={isConnecting}
+				toggleConnectionMode={toggleConnectionMode}
+				connectionsCount={connections.length}
+				currentArchitecture={currentArchitecture}
+				localCamera={localCamera}
+				zoomIn={zoomIn}
+				zoomOut={zoomOut}
+				resetCamera={resetCamera}
+				selectedClass={selectedClass}
+				updateClassProperty={updateClassProperty}
+				addProperty={addProperty}
+				addMethod={addMethod}
+				deleteClass={(classId) => {
+					deleteClass(classId);
+					setSelectedClass(null);
+				}}
+			/>
 
-				<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-					{/* Левая панель управления */}
-					<div className="lg:col-span-1 space-y-4">
-						<ArchitectureManager
-							architectures={architectures}
-							currentArchitectureId={currentArchitectureId}
-							setCurrentArchitectureId={setCurrentArchitectureId}
-							createNewArchitecture={createNewArchitecture}
-							deleteArchitecture={deleteArchitecture}
-							duplicateArchitecture={duplicateArchitecture}
-						/>
+			<SidebarToggle isSidebarVisible={isSidebarVisible} setIsSidebarVisible={setIsSidebarVisible} />
 
-						<CategoryManagement classCategories={classCategories} classes={classes} updateCurrentArchitecture={updateCurrentArchitecture} />
-
-						<ClassCreator newClassForm={newClassForm} setNewClassForm={setNewClassForm} classCategories={classCategories} onAddClass={() => addCustomClass(localCamera)} />
-
-						<CameraControls localCamera={localCamera} zoomIn={zoomIn} zoomOut={zoomOut} resetCamera={resetCamera} />
-
-						<ExportControls currentArchitecture={currentArchitecture} />
-					</div>
-
-					{/* Центральная область - Canvas */}
-					<div className="lg:col-span-2">
-						<div className="bg-white rounded-lg shadow-lg p-4">
-							<div className="flex justify-between items-center mb-4">
-								<h2 className="text-xl font-semibold">{currentArchitecture.name}</h2>
-								<div className="text-sm text-gray-500">Классов: {classes.length}</div>
-							</div>
-
-							<Canvas
-								canvasRef={canvasRef}
-								classes={classes}
-								localCamera={localCamera}
-								selectedClass={selectedClass}
-								draggedClass={draggedClass}
-								onCanvasMouseDown={handleCanvasMouseDown}
-								onClassMouseDown={handleMouseDown}
-								onDeleteClass={deleteClass}
-								onDragMove={handleDragMove}
-								onDragEnd={handleDragEnd}
-							/>
-						</div>
-					</div>
-
-					{/* Правая панель - Детали класса */}
-					<div className="lg:col-span-1">
-						<div className="bg-white rounded-lg shadow-lg p-4 h-fit">
-							<ClassDetails
-								selectedClass={selectedClass}
-								classCategories={classCategories}
-								onUpdateProperty={updateClassProperty}
-								onAddProperty={addProperty}
-								onAddMethod={addMethod}
-								onDeleteClass={(classId) => {
-									deleteClass(classId);
-									setSelectedClass(null);
-								}}
-							/>
-						</div>
-					</div>
-				</div>
-			</div>
+			<WorkspaceArea
+				isSidebarVisible={isSidebarVisible}
+				canvasRef={canvasRef}
+				localCamera={localCamera}
+				isPanning={isPanning}
+				handleCanvasMouseDown={handleCanvasMouseDown}
+				handleCanvasClick={handleCanvasClick}
+				connections={connections}
+				connectionPreview={connectionPreview}
+				classes={classes}
+				isConnecting={isConnecting}
+				connectionStart={connectionStart}
+				selectedClass={selectedClass}
+				handleClassClick={handleClassClick}
+				deleteConnection={deleteConnection}
+			/>
 		</div>
 	);
 };

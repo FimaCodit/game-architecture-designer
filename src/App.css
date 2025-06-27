@@ -6,10 +6,6 @@
 	transition: box-shadow 0.2s ease;
 }
 
-.class-block:hover {
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
 /* Плавная анимация для панорамирования */
 .canvas-smooth {
 	transition: transform 0.1s ease-out;
@@ -33,4 +29,34 @@
 
 ::-webkit-scrollbar-thumb:hover {
 	background: #a1a1a1;
+}
+
+/* Анимация для предварительного просмотра связи */
+@keyframes dash {
+	0% {
+		stroke-dashoffset: 0;
+	}
+	100% {
+		stroke-dashoffset: -20px;
+	}
+}
+
+.preview-line {
+	animation: none; /* Убираем анимацию для мгновенного отображения */
+}
+
+/* Стили для связей */
+.connection-line {
+	cursor: pointer;
+	transition: none; /* Убираем задержку */
+}
+
+/* Анимация для кнопки удаления связи */
+.connection-delete-btn {
+	transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Анимация для кнопки удаления связи */
+.connection-delete-btn {
+	transition: opacity 0.2s ease, transform 0.2s ease;
 }

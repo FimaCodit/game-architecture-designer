@@ -1,57 +1,60 @@
 import React from "react";
-import { Trash2 } from "lucide-react";
-import { classStyleUtils } from "../utils/classStyleUtils";
 
-const ClassBlock = ({ classObj, localCamera, selectedClass, onMouseDown, onDeleteClass }) => {
-	const colorClass = classStyleUtils.getDynamicClassColor(classObj.type);
+const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, handleClassClick, getDynamicClassColor }) => {
+	const isSelected = selectedClass?.id === classObj.id;
+	const isConnectionStart = connectionStart?.classId === classObj.id;
 
 	return (
 		<div
-			className={`class-block absolute cursor-move border-2 rounded p-2 shadow-lg select-none ${colorClass} ${selectedClass?.id === classObj.id ? "ring-2 ring-blue-500" : ""}`}
+			className={`class-block absolute bg-white border-2 rounded-lg shadow-md min-w-48 overflow-hidden ${isConnecting ? "cursor-pointer" : "cursor-move"} ${getDynamicClassColor(
+				classObj.type,
+			)} ${isSelected ? "ring-2 ring-blue-500 shadow-xl border-blue-400 bg-blue-50" : ""} ${isConnectionStart ? "ring-2 ring-green-400" : ""}`}
 			style={{
-				left: classObj.position.x * localCamera.zoom + localCamera.offsetX,
-				top: classObj.position.y * localCamera.zoom + localCamera.offsetY,
-				transform: `scale(${localCamera.zoom})`,
-				transformOrigin: "top left",
-				minWidth: "150px",
-				zIndex: selectedClass?.id === classObj.id ? 10 : 1,
+				left: classObj.position.x,
+				top: classObj.position.y,
+				userSelect: "none",
 			}}
-			onMouseDown={(e) => onMouseDown(e, classObj)}
+			onMouseDown={(e) => handleClassClick(e, classObj)}
+			onClick={(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+			}}
+			title={
+				isConnecting
+					? isConnectionStart
+						? "Выбран как начальный класс"
+						: connectionStart
+						? "Кликните для создания связи"
+						: "Кликните для начала создания связи"
+					: "Перетащите для перемещения"
+			}
 		>
-			<div className="flex justify-between items-start mb-1">
-				<h3 className="font-bold text-xs">{classObj.name}</h3>
-				<button
-					className="no-drag text-red-500 hover:text-red-700 ml-1"
-					onClick={(e) => {
-						e.stopPropagation();
-						onDeleteClass(classObj.id);
-					}}
-				>
-					<Trash2 size={10} />
-				</button>
+			<div className="bg-white p-2 border-b">
+				<div className="font-bold text-sm">{classObj.name}</div>
+				<div className="text-xs text-gray-600">{classObj.type}</div>
 			</div>
 
-			<div className="text-xs text-gray-600 mb-2">{classObj.type}</div>
-
 			{classObj.properties.length > 0 && (
-				<div className="mb-2">
-					<div className="text-xs font-semibold text-gray-700">Свойства:</div>
-					{classObj.properties.map((prop, idx) => (
-						<div key={idx} className="text-xs text-gray-600">
-							{prop.access} {prop.type} {prop.name}
+				<div className="p-2 border-b bg-white">
+					<div className="text-xs font-semibold mb-1">Properties:</div>
+					{classObj.properties.slice(0, 3).map((prop, idx) => (
+						<div key={idx} className="text-xs text-gray-700">
+							{prop.access === "private" ? "-" : "+"} {prop.name}: {prop.type}
 						</div>
 					))}
+					{classObj.properties.length > 3 && <div className="text-xs text-gray-500">...и ещё {classObj.properties.length - 3}</div>}
 				</div>
 			)}
 
 			{classObj.methods.length > 0 && (
-				<div>
-					<div className="text-xs font-semibold text-gray-700">Методы:</div>
-					{classObj.methods.map((method, idx) => (
-						<div key={idx} className="text-xs text-gray-600">
-							{method.access} {method.returnType} {method.name}({method.params})
+				<div className="p-2 bg-white">
+					<div className="text-xs font-semibold mb-1">Methods:</div>
+					{classObj.methods.slice(0, 3).map((method, idx) => (
+						<div key={idx} className="text-xs text-gray-700">
+							{method.access === "private" ? "-" : "+"} {method.name}({method.params})
 						</div>
 					))}
+					{classObj.methods.length > 3 && <div className="text-xs text-gray-500">...и ещё {classObj.methods.length - 3}</div>}
 				</div>
 			)}
 		</div>

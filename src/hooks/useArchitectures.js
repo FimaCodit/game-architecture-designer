@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export const useArchitectures = () => {
 	const [architectures, setArchitectures] = useState([
@@ -7,7 +7,7 @@ export const useArchitectures = () => {
 			name: "Новая архитектура",
 			classes: [],
 			connections: [],
-			categories: ["Gameplay", "System", "UI", "Data", "Network"],
+			categories: ["Gameplay", "UI"],
 			camera: { zoom: 1, offsetX: 0, offsetY: 0 },
 			createdAt: new Date().toISOString(),
 			lastModified: new Date().toISOString(),
@@ -24,24 +24,24 @@ export const useArchitectures = () => {
 		setArchitectures((prev) => prev.map((arch) => (arch.id === currentArchitectureId ? { ...arch, ...updates, lastModified: new Date().toISOString() } : arch)));
 	};
 
-	const createNewArchitecture = (name) => {
-		if (!name.trim()) return false;
+	const createNewArchitecture = useCallback(
+		(name = "Новая архитектура") => {
+			const newArchitecture = {
+				id: generateId(),
+				name: name,
+				classes: [],
+				connections: [],
+				categories: ["Gameplay", "System", "UI", "Data", "Network"],
+				camera: { zoom: 1, offsetX: 0, offsetY: 0 },
+			};
 
-		const newArch = {
-			id: generateId(),
-			name,
-			classes: [],
-			connections: [],
-			categories: ["Gameplay", "System", "UI", "Data", "Network"],
-			camera: { zoom: 1, offsetX: 0, offsetY: 0 },
-			createdAt: new Date().toISOString(),
-			lastModified: new Date().toISOString(),
-		};
-
-		setArchitectures((prev) => [...prev, newArch]);
-		setCurrentArchitectureId(newArch.id);
-		return true;
-	};
+			const updatedArchitectures = [...architectures, newArchitecture];
+			setArchitectures(updatedArchitectures);
+			setCurrentArchitectureId(newArchitecture.id);
+			localStorage.setItem("architectures", JSON.stringify(updatedArchitectures));
+		},
+		[architectures, generateId],
+	);
 
 	const deleteArchitecture = (archId) => {
 		if (architectures.length <= 1) return false;
@@ -55,21 +55,9 @@ export const useArchitectures = () => {
 		return true;
 	};
 
-	const duplicateArchitecture = (archId) => {
-		const archToDuplicate = architectures.find((arch) => arch.id === archId);
-		if (!archToDuplicate) return false;
-
-		const duplicatedArch = {
-			...archToDuplicate,
-			id: generateId(),
-			name: `${archToDuplicate.name} (копия)`,
-			createdAt: new Date().toISOString(),
-			lastModified: new Date().toISOString(),
-		};
-
-		setArchitectures((prev) => [...prev, duplicatedArch]);
-		return true;
-	};
+	const renameArchitecture = useCallback((archId, newName) => {
+		setArchitectures((prev) => prev.map((arch) => (arch.id === archId ? { ...arch, name: newName.trim() || arch.name, lastModified: new Date().toISOString() } : arch)));
+	}, []);
 
 	return {
 		architectures,
@@ -79,7 +67,7 @@ export const useArchitectures = () => {
 		updateCurrentArchitecture,
 		createNewArchitecture,
 		deleteArchitecture,
-		duplicateArchitecture,
+		renameArchitecture,
 		generateId,
 	};
 };

@@ -7,7 +7,6 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 	const [newClassForm, setNewClassForm] = useState({ name: "", type: "Gameplay" });
 
 	const classes = currentArchitecture.classes;
-	const connections = currentArchitecture.connections;
 	const classCategories = currentArchitecture.categories;
 
 	useEffect(() => {
@@ -39,7 +38,7 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 
 	const deleteClass = (classId) => {
 		const updatedClasses = classes.filter((c) => c.id !== classId);
-		const updatedConnections = connections.filter((c) => c.from !== classId && c.to !== classId);
+		const updatedConnections = currentArchitecture.connections.filter((c) => c.from !== classId && c.to !== classId);
 
 		updateCurrentArchitecture({
 			classes: updatedClasses,
@@ -66,6 +65,7 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 
 	const handleMouseDown = (e, classObj) => {
 		e.stopPropagation();
+		e.preventDefault();
 		if (e.target.closest(".no-drag")) return;
 
 		const rect = e.currentTarget.getBoundingClientRect();
@@ -78,13 +78,13 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 	};
 
 	const handleDragMove = (e, localCamera, canvasRef) => {
-		if (!draggedClass) return;
+		if (!draggedClass || !canvasRef.current) return;
 
 		const canvasRect = canvasRef.current.getBoundingClientRect();
 		const newX = (e.clientX - canvasRect.left - dragOffset.x - localCamera.offsetX) / localCamera.zoom;
 		const newY = (e.clientY - canvasRect.top - dragOffset.y - localCamera.offsetY) / localCamera.zoom;
 
-		const updatedClasses = classes.map((c) => (c.id === draggedClass.id ? { ...c, position: { x: Math.max(0, newX), y: Math.max(0, newY) } } : c));
+		const updatedClasses = classes.map((c) => (c.id === draggedClass.id ? { ...c, position: { x: newX, y: newY } } : c));
 		updateCurrentArchitecture({ classes: updatedClasses });
 	};
 
@@ -100,7 +100,6 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		newClassForm,
 		setNewClassForm,
 		classes,
-		connections,
 		classCategories,
 		addCustomClass,
 		deleteClass,
