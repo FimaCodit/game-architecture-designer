@@ -28,6 +28,7 @@ const AppContent = () => {
 		createNewArchitecture,
 		deleteArchitecture,
 		renameArchitecture,
+		applyTemplate, // Добавляем новую функцию
 		generateId,
 		loading,
 		error,
@@ -184,6 +185,9 @@ const AppContent = () => {
 				// Добавляем пропсы для множественного выделения
 				hasMultipleSelection={hasMultipleSelection}
 				selectedClasses={selectedClasses}
+				// Добавляем новые пропсы для шаблонов
+				applyTemplate={applyTemplate}
+				generateId={generateId}
 			/>
 
 			<div className="flex-1 flex flex-col relative">

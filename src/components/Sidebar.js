@@ -6,6 +6,7 @@ import ClassCreator from "./ClassCreator";
 import ClassDetails from "./ClassDetails";
 import ExportControls from "./ExportControls";
 import ConnectionControls from "./ConnectionControls";
+import TemplateSelector from "./TemplateSelector"; // Добавляем импорт
 import { useAuth } from "../contexts/AuthContext";
 import { Settings, ChevronDown } from "lucide-react";
 
@@ -46,9 +47,12 @@ const Sidebar = ({
 	copiedClass,
 	hasMultipleSelection,
 	selectedClasses,
+	// Добавляем новые пропсы для шаблонов
+	applyTemplate,
+	generateId,
 }) => {
 	const { user } = useAuth();
-	const [showConstructorDetails, setShowConstructorDetails] = useState(false); // Изменяем на false
+	const [showConstructorDetails, setShowConstructorDetails] = useState(false);
 
 	return (
 		<div className={`bg-white border-r border-gray-200 overflow-y-auto transition-all duration-300 ${isVisible ? "w-80 p-4" : "w-0 p-0"} relative`}>
@@ -109,6 +113,9 @@ const Sidebar = ({
 					isAuthenticated={isAuthenticated}
 				/>
 
+				{/* Селектор шаблонов - выносим отдельно */}
+				<TemplateSelector onApplyTemplate={applyTemplate} currentArchitecture={currentArchitecture} generateId={generateId} />
+
 				{/* Заголовок конструктора с кнопкой раскрытия - в том же стиле что и архитектуры */}
 				<div className="mb-6">
 					<div className="flex items-center gap-2 mb-4">
@@ -123,7 +130,7 @@ const Sidebar = ({
 						</button>
 					</div>
 
-					{/* Скрываемый контент конструктора (только категории и экспорт) */}
+					{/* Скрываемый контент конструктора (убираем TemplateSelector отсюда) */}
 					{showConstructorDetails && (
 						<div className="space-y-6">
 							<CategoryManagement classCategories={classCategories} classes={classes} updateCurrentArchitecture={updateCurrentArchitecture} currentArchitecture={currentArchitecture} />

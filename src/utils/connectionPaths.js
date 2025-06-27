@@ -1,3 +1,5 @@
+import { getClassSize } from "./classSize";
+
 /**
  * Утилиты для работы с путями связей между классами
  */
@@ -11,7 +13,7 @@ const calculateClassHeight = (classObj) => {
 	let height = 60; // Базовая высота заголовка (примерно)
 
 	// Добавляем высоту для свойств
-	if (classObj.properties.length > 0) {
+	if (classObj.properties && classObj.properties.length > 0) {
 		height += 20; // Заголовок "Properties:"
 		height += Math.min(classObj.properties.length, 3) * 16; // По 16px на каждое свойство (макс 3)
 		if (classObj.properties.length > 3) {
@@ -21,7 +23,7 @@ const calculateClassHeight = (classObj) => {
 	}
 
 	// Добавляем высоту для методов
-	if (classObj.methods.length > 0) {
+	if (classObj.methods && classObj.methods.length > 0) {
 		height += 20; // Заголовок "Methods:"
 		height += Math.min(classObj.methods.length, 3) * 16; // По 16px на каждый метод (макс 3)
 		if (classObj.methods.length > 3) {
@@ -33,107 +35,97 @@ const calculateClassHeight = (classObj) => {
 	return height;
 };
 
-/**
- * Вычисляет путь связи между двумя классами
- * @param {Object} fromClass - Исходный класс
- * @param {Object} toClass - Целевой класс
- * @param {Object} camera - Объект камеры с zoom, offsetX, offsetY
- * @returns {string} SVG path строка
- */
-export const calculateConnectionPath = (fromClass, toClass, camera) => {
-	if (!fromClass || !toClass) return "";
+// Функция для вычисления точек подключения на краях класса
+const getConnectionPoint = (classObj, targetClassObj, localCamera) => {
+	// Получаем реальные размеры классов с учетом зума
+	const classSize = getClassSize(classObj, localCamera);
+	const targetSize = getClassSize(targetClassObj, localCamera);
 
-	// Размеры блока класса
-	const blockWidth = 192; // min-w-48 = 192px
-	const fromBlockHeight = calculateClassHeight(fromClass);
-	const toBlockHeight = calculateClassHeight(toClass);
+	const classWidth = classSize.width * localCamera.zoom;
+	const classHeight = classSize.height * localCamera.zoom;
 
-	// Центры классов для определения направления
-	const fromCenterX = fromClass.position.x + blockWidth / 2;
-	const fromCenterY = fromClass.position.y + fromBlockHeight / 2;
-	const toCenterX = toClass.position.x + blockWidth / 2;
-	const toCenterY = toClass.position.y + toBlockHeight / 2;
+	// Координаты текущего класса (учитываем что transform-origin: top left)
+	const classLeft = classObj.position.x * localCamera.zoom + localCamera.offsetX;
+	const classTop = classObj.position.y * localCamera.zoom + localCamera.offsetY;
+	const classRight = classLeft + classWidth;
+	const classBottom = classTop + classHeight;
+	const classCenterX = classLeft + classWidth / 2;
+	const classCenterY = classTop + classHeight / 2;
 
-	// Определяем направление связи
-	const dx = toCenterX - fromCenterX;
-	const dy = toCenterY - fromCenterY;
+	// Координаты целевого класса
+	const targetLeft = targetClassObj.position.x * localCamera.zoom + localCamera.offsetX;
+	const targetTop = targetClassObj.position.y * localCamera.zoom + localCamera.offsetY;
+	const targetWidth = targetSize.width * localCamera.zoom;
+	const targetHeight = targetSize.height * localCamera.zoom;
+	const targetCenterX = targetLeft + targetWidth / 2;
+	const targetCenterY = targetTop + targetHeight / 2;
 
-	let fromX, fromY, toX, toY;
-	let controlX1, controlY1, controlX2, controlY2;
+	// Определяем направление к целевому классу
+	const deltaX = targetCenterX - classCenterX;
+	const deltaY = targetCenterY - classCenterY;
 
-	// Если второй класс ниже первого - линия идет от нижнего края первого к верхнему краю второго
-	if (dy > Math.abs(dx)) {
-		// Вертикальная связь сверху вниз
-		fromX = fromCenterX;
-		fromY = fromClass.position.y + fromBlockHeight; // нижний край первого класса
-		toX = toCenterX;
-		toY = toClass.position.y; // верхний край второго класса
+	let connectionX, connectionY;
 
-		// Кривая Безье для вертикальной связи
-		const midY = fromY + (toY - fromY) / 2;
-		controlX1 = fromX;
-		controlY1 = midY;
-		controlX2 = toX;
-		controlY2 = midY;
-	}
-	// Если второй класс выше первого - линия идет от верхнего края первого к нижнему краю второго
-	else if (dy < -Math.abs(dx)) {
-		// Вертикальная связь снизу вверх
-		fromX = fromCenterX;
-		fromY = fromClass.position.y; // верхний край первого класса
-		toX = toCenterX;
-		toY = toClass.position.y + toBlockHeight; // нижний край второго класса
+	// Используем более точное определение стороны
+	const absX = Math.abs(deltaX);
+	const absY = Math.abs(deltaY);
 
-		// Кривая Безье для вертикальной связи
-		const midY = fromY + (toY - fromY) / 2;
-		controlX1 = fromX;
-		controlY1 = midY;
-		controlX2 = toX;
-		controlY2 = midY;
-	}
-	// Если второй класс справа от первого - линия идет от правого края первого к левому краю второго
-	else if (dx > 0) {
-		// Горизонтальная связь слева направо
-		fromX = fromClass.position.x + blockWidth; // правый край первого класса
-		fromY = fromCenterY;
-		toX = toClass.position.x; // левый край второго класса
-		toY = toCenterY;
-
-		// Кривая Безье для горизонтальной связи
-		const midX = fromX + (toX - fromX) / 2;
-		controlX1 = midX;
-		controlY1 = fromY;
-		controlX2 = midX;
-		controlY2 = toY;
-	}
-	// Если второй класс слева от первого - линия идет от левого края первого к правому краю второго
-	else {
-		// Горизонтальная связь справа налево
-		fromX = fromClass.position.x; // левый край первого класса
-		fromY = fromCenterY;
-		toX = toClass.position.x + blockWidth; // правый край второго класса
-		toY = toCenterY;
-
-		// Кривая Безье для горизонтальной связи
-		const midX = fromX + (toX - fromX) / 2;
-		controlX1 = midX;
-		controlY1 = fromY;
-		controlX2 = midX;
-		controlY2 = toY;
+	if (absX > absY) {
+		// Горизонтальное направление преобладает
+		if (deltaX > 0) {
+			// Целевой класс справа
+			connectionX = classRight;
+			connectionY = classCenterY;
+		} else {
+			// Целевой класс слева
+			connectionX = classLeft;
+			connectionY = classCenterY;
+		}
+	} else {
+		// Вертикальное направление преобладает
+		if (deltaY > 0) {
+			// Целевой класс снизу
+			connectionX = classCenterX;
+			connectionY = classBottom;
+		} else {
+			// Целевой класс сверху
+			connectionX = classCenterX;
+			connectionY = classTop;
+		}
 	}
 
-	// Применяем трансформацию для отображения
-	const screenFromX = fromX * camera.zoom + camera.offsetX;
-	const screenFromY = fromY * camera.zoom + camera.offsetY;
-	const screenToX = toX * camera.zoom + camera.offsetX;
-	const screenToY = toY * camera.zoom + camera.offsetY;
-	const screenControlX1 = controlX1 * camera.zoom + camera.offsetX;
-	const screenControlY1 = controlY1 * camera.zoom + camera.offsetY;
-	const screenControlX2 = controlX2 * camera.zoom + camera.offsetX;
-	const screenControlY2 = controlY2 * camera.zoom + camera.offsetY;
+	return { x: connectionX, y: connectionY };
+};
 
-	// Создаем кубическую кривую Безье (в данном случае прямую линию)
-	return `M ${screenFromX} ${screenFromY} C ${screenControlX1} ${screenControlY1}, ${screenControlX2} ${screenControlY2}, ${screenToX} ${screenToY}`;
+export const calculateConnectionPath = (fromClass, toClass, localCamera) => {
+	const fromPoint = getConnectionPoint(fromClass, toClass, localCamera);
+	const toPoint = getConnectionPoint(toClass, fromClass, localCamera);
+
+	// Создаем плавную кривую Безье между точками на краях классов
+	const deltaX = toPoint.x - fromPoint.x;
+	const deltaY = toPoint.y - fromPoint.y;
+
+	// Контрольные точки для кривой Безье
+	const controlOffset = Math.min(Math.abs(deltaX), Math.abs(deltaY)) * 0.5 + 50;
+
+	let control1X, control1Y, control2X, control2Y;
+
+	// Определяем направление контрольных точек на основе направления связи
+	if (Math.abs(deltaX) > Math.abs(deltaY)) {
+		// Горизонтальная связь
+		control1X = fromPoint.x + Math.sign(deltaX) * controlOffset;
+		control1Y = fromPoint.y;
+		control2X = toPoint.x - Math.sign(deltaX) * controlOffset;
+		control2Y = toPoint.y;
+	} else {
+		// Вертикальная связь
+		control1X = fromPoint.x;
+		control1Y = fromPoint.y + Math.sign(deltaY) * controlOffset;
+		control2X = toPoint.x;
+		control2Y = toPoint.y - Math.sign(deltaY) * controlOffset;
+	}
+
+	return `M ${fromPoint.x} ${fromPoint.y} C ${control1X} ${control1Y}, ${control2X} ${control2Y}, ${toPoint.x} ${toPoint.y}`;
 };
 
 /**
@@ -142,14 +134,9 @@ export const calculateConnectionPath = (fromClass, toClass, camera) => {
  * @param {Object} camera - Объект камеры с zoom, offsetX, offsetY
  * @returns {string} SVG path строка
  */
-export const calculatePreviewPath = (connectionPreview, camera) => {
-	if (!connectionPreview) return "";
+export const calculatePreviewPath = (preview, localCamera) => {
+	if (!preview.from || !preview.to) return "";
 
-	// Обе координаты теперь в системе классов, применяем трансформацию камеры к обеим
-	const fromX = connectionPreview.from.x * camera.zoom + camera.offsetX;
-	const fromY = connectionPreview.from.y * camera.zoom + camera.offsetY;
-	const toX = connectionPreview.to.x * camera.zoom + camera.offsetX;
-	const toY = connectionPreview.to.y * camera.zoom + camera.offsetY;
-
-	return `M ${fromX} ${fromY} L ${toX} ${toY}`;
+	// Для предварительного просмотра используем простую линию
+	return `M ${preview.from.x * localCamera.zoom + localCamera.offsetX} ${preview.from.y * localCamera.zoom + localCamera.offsetY} L ${preview.to.x} ${preview.to.y}`;
 };

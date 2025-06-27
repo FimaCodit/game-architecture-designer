@@ -304,6 +304,26 @@ export const useArchitectures = () => {
 		}
 	}, [user, currentArchitectureId, architectures]);
 
+	// Применение шаблона архитектуры
+	const applyTemplate = useCallback(
+		async (templateData) => {
+			console.log("useArchitectures: applyTemplate called", templateData);
+
+			try {
+				await updateCurrentArchitecture({
+					classes: templateData.classes,
+					connections: templateData.connections,
+					categories: templateData.categories,
+				});
+				console.log("useArchitectures: Template applied successfully");
+			} catch (error) {
+				console.error("useArchitectures: Error applying template:", error);
+				throw error;
+			}
+		},
+		[updateCurrentArchitecture],
+	);
+
 	// Очистка при размонтировании
 	useEffect(() => {
 		return () => {
@@ -325,6 +345,7 @@ export const useArchitectures = () => {
 		createNewArchitecture,
 		deleteArchitecture,
 		renameArchitecture,
+		applyTemplate, // Добавляем новую функцию
 		generateId,
 		loading,
 		error,
@@ -333,6 +354,6 @@ export const useArchitectures = () => {
 		forceSync,
 
 		isAuthenticated: !!user,
-		forceRender, // Добавляем в возвращаемые значения
+		forceRender,
 	};
 };

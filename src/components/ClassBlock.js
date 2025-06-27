@@ -12,6 +12,7 @@ const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, ha
 
 	return (
 		<div
+			data-class-id={classObj.id}
 			className={`class-block absolute bg-white border-2 rounded-lg shadow-md min-w-48 overflow-hidden ${isConnecting ? "cursor-pointer" : "cursor-move"} ${!isCustomColor ? classColor : ""} ${
 				selectedClass?.id === classObj.id || isSelected ? "ring-2 ring-blue-500 shadow-xl border-blue-400 bg-blue-50" : ""
 			} ${isConnectionStart ? "ring-2 ring-green-400" : ""}`}
