@@ -2,7 +2,6 @@ import React from "react";
 import ArchitectureManager from "./ArchitectureManager";
 import CategoryManagement from "./CategoryManagement";
 import ClassCreator from "./ClassCreator";
-import CameraControls from "./CameraControls";
 import ClassDetails from "./ClassDetails";
 import ExportControls from "./ExportControls";
 import ConnectionControls from "./ConnectionControls";
@@ -56,8 +55,6 @@ const Sidebar = ({
 				<ConnectionControls isConnecting={isConnecting} onToggleConnectionMode={toggleConnectionMode} connectionsCount={connectionsCount} />
 
 				<ExportControls currentArchitecture={currentArchitecture} />
-
-				<CameraControls localCamera={localCamera} zoomIn={zoomIn} zoomOut={zoomOut} resetCamera={resetCamera} />
 
 				<ClassDetails
 					selectedClass={selectedClass}

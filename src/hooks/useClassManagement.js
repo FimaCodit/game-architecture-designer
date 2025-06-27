@@ -51,6 +51,11 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 	const updateClassProperty = (classId, field, value) => {
 		const updatedClasses = classes.map((c) => (c.id === classId ? { ...c, [field]: value } : c));
 		updateCurrentArchitecture({ classes: updatedClasses });
+
+		// Обновляем выбранный класс если он редактируется
+		if (selectedClass?.id === classId) {
+			setSelectedClass((prev) => (prev ? { ...prev, [field]: value } : null));
+		}
 	};
 
 	const addProperty = (classId) => {

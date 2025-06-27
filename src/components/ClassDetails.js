@@ -12,6 +12,12 @@ const ClassDetails = ({ selectedClass, classCategories, onUpdateProperty, onAddP
 
 	const updateProperty = (field, value) => {
 		onUpdateProperty(selectedClass.id, field, value);
+
+		// Обновляем локальное состояние выбранного класса
+		if (field === "name") {
+			// Эмитируем обновление, чтобы компонент перерендерился с новыми данными
+			// selectedClass будет обновлен через пропсы при следующем рендере
+		}
 	};
 
 	const startEditProperty = (index) => {
@@ -66,7 +72,17 @@ const ClassDetails = ({ selectedClass, classCategories, onUpdateProperty, onAddP
 
 			<div className="mb-4">
 				<label className="block text-sm font-medium mb-1">Название</label>
-				<input type="text" value={selectedClass.name} onChange={(e) => updateProperty("name", e.target.value)} className="w-full p-2 border rounded text-sm" />
+				<input
+					type="text"
+					value={selectedClass.name}
+					onChange={(e) => updateProperty("name", e.target.value)}
+					className="w-full p-2 border rounded text-sm"
+					onKeyDown={(e) => {
+						if (e.key === "Enter") {
+							e.target.blur();
+						}
+					}}
+				/>
 			</div>
 
 			<div className="mb-4">

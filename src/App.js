@@ -10,6 +10,7 @@ import { createConnectionModeToggler } from "./handlers/connectionModeHandler";
 import Sidebar from "./components/Sidebar";
 import SidebarToggle from "./components/SidebarToggle";
 import WorkspaceArea from "./components/WorkspaceArea";
+import FloatingCameraControls from "./components/FloatingCameraControls";
 import "./App.css";
 
 const App = () => {
@@ -117,10 +118,6 @@ const App = () => {
 				toggleConnectionMode={toggleConnectionMode}
 				connectionsCount={connections.length}
 				currentArchitecture={currentArchitecture}
-				localCamera={localCamera}
-				zoomIn={zoomIn}
-				zoomOut={zoomOut}
-				resetCamera={resetCamera}
 				selectedClass={selectedClass}
 				updateClassProperty={updateClassProperty}
 				addProperty={addProperty}
@@ -149,6 +146,8 @@ const App = () => {
 				handleClassClick={handleClassClick}
 				deleteConnection={deleteConnection}
 			/>
+
+			<FloatingCameraControls localCamera={localCamera} zoomIn={zoomIn} zoomOut={zoomOut} resetCamera={resetCamera} />
 		</div>
 	);
 };
