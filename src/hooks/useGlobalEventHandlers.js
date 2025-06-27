@@ -1,29 +1,63 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
-export const useGlobalEventHandlers = ({ draggedClass, isConnecting, connectionStart, handleDragMove, handleDragEnd, updateConnectionPreview, localCamera, canvasRef }) => {
-	useEffect(() => {
-		const handleGlobalMouseMove = (e) => {
-			if (draggedClass) {
-				handleDragMove(e, localCamera, canvasRef);
+export const useGlobalEventHandlers = ({
+	draggedClass,
+	isDraggingMultiple,
+	draggedMultipleClasses,
+	isConnecting,
+	connectionStart,
+	handleDragMove,
+	handleDragEnd,
+	updateConnectionPreview,
+	localCamera,
+	canvasRef,
+}) => {
+	const handleMouseMove = useCallback(
+		(e) => {
+			// Обработка перетаскивания классов (одиночного или группового)
+			if (draggedClass || (isDraggingMultiple && draggedMultipleClasses?.length > 0)) {
+				handleDragMove(e);
 			}
+
+			// Обработка предварительного просмотра связи
 			if (isConnecting && connectionStart) {
-				updateConnectionPreview({ x: e.clientX, y: e.clientY });
+				updateConnectionPreview(e);
 			}
-		};
+		},
+		[draggedClass, isDraggingMultiple, draggedMultipleClasses, isConnecting, connectionStart, handleDragMove, updateConnectionPreview],
+	);
 
-		const handleGlobalMouseUp = () => {
-			if (draggedClass) {
-				handleDragEnd();
-			}
-		};
-
-		if (draggedClass || (isConnecting && connectionStart)) {
-			document.addEventListener("mousemove", handleGlobalMouseMove);
-			document.addEventListener("mouseup", handleGlobalMouseUp);
-			return () => {
-				document.removeEventListener("mousemove", handleGlobalMouseMove);
-				document.removeEventListener("mouseup", handleGlobalMouseUp);
-			};
+	const handleMouseUp = useCallback(() => {
+		// Завершаем перетаскивание если оно активно
+		if (draggedClass || (isDraggingMultiple && draggedMultipleClasses?.length > 0)) {
+			handleDragEnd();
 		}
-	}, [draggedClass, isConnecting, connectionStart, handleDragMove, handleDragEnd, updateConnectionPreview, localCamera, canvasRef]);
+	}, [draggedClass, isDraggingMultiple, draggedMultipleClasses, handleDragEnd]);
+
+	// Глобальные обработчики событий мыши
+	useEffect(() => {
+		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", handleMouseUp);
+
+		return () => {
+			document.removeEventListener("mousemove", handleMouseMove);
+			document.removeEventListener("mouseup", handleMouseUp);
+		};
+	}, [handleMouseMove, handleMouseUp]);
+
+	// Обработчики для предотвращения выделения текста во время перетаскивания
+	useEffect(() => {
+		if (draggedClass || (isDraggingMultiple && draggedMultipleClasses?.length > 0)) {
+			document.body.style.userSelect = "none";
+			document.body.style.cursor = "grabbing";
+		} else {
+			document.body.style.userSelect = "";
+			document.body.style.cursor = "";
+		}
+
+		return () => {
+			document.body.style.userSelect = "";
+			document.body.style.cursor = "";
+		};
+	}, [draggedClass, isDraggingMultiple, draggedMultipleClasses]);
 };

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { getClassSize } from "../utils/classSize";
 
 export const useMultiSelection = (classes, localCamera, canvasRef) => {
 	const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -10,11 +11,13 @@ export const useMultiSelection = (classes, localCamera, canvasRef) => {
 	// Проверяем нажата ли клавиша Cmd/Ctrl
 	useEffect(() => {
 		const handleKeyDown = (e) => {
+			// Игнорируем если фокус в input/textarea
+			if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
 			const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 			const isCtrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
 
 			if (isCtrlOrCmd && !isSelectionMode) {
-				console.log("Selection mode ON");
 				setIsSelectionMode(true);
 			}
 		};
@@ -24,34 +27,32 @@ export const useMultiSelection = (classes, localCamera, canvasRef) => {
 			const wasCtrlOrCmd = isMac ? !e.metaKey : !e.ctrlKey;
 
 			if (wasCtrlOrCmd && isSelectionMode) {
-				console.log("Selection mode OFF");
 				setIsSelectionMode(false);
 				setIsDrawingSelection(false);
 				setSelectionRect(null);
-				// НЕ очищаем selectedClasses - оставляем классы выделенными
 			}
 		};
 
-		document.addEventListener("keydown", handleKeyDown);
-		document.addEventListener("keyup", handleKeyUp);
+		document.addEventListener("keydown", handleKeyDown, true);
+		document.addEventListener("keyup", handleKeyUp, true);
 
 		return () => {
-			document.removeEventListener("keydown", handleKeyDown);
-			document.removeEventListener("keyup", handleKeyUp);
+			document.removeEventListener("keydown", handleKeyDown, true);
+			document.removeEventListener("keyup", handleKeyUp, true);
 		};
 	}, [isSelectionMode]);
 
 	// Начало выделения области
 	const startSelection = useCallback(
 		(e) => {
-			console.log("startSelection called", { isSelectionMode });
-			if (!isSelectionMode) return false;
+			if (!isSelectionMode || e.button !== 0) return false; // Только левая кнопка мыши
+
+			e.preventDefault();
+			e.stopPropagation();
 
 			const rect = canvasRef.current.getBoundingClientRect();
 			const startX = e.clientX - rect.left;
 			const startY = e.clientY - rect.top;
-
-			console.log("Starting selection at", { startX, startY });
 
 			setSelectionStart({ x: startX, y: startY });
 			setIsDrawingSelection(true);
@@ -86,43 +87,35 @@ export const useMultiSelection = (classes, localCamera, canvasRef) => {
 				height: Math.abs(height),
 			});
 		},
-		[isDrawingSelection, selectionStart],
+		[isDrawingSelection, selectionStart, canvasRef],
 	);
 
 	// Завершение выделения
 	const endSelection = useCallback(() => {
 		if (!isDrawingSelection || !selectionRect) return;
 
-		console.log("endSelection called", { isDrawingSelection, selectionRect });
-
 		// Находим классы, которые попадают в область выделения
 		const selectedIds = [];
 
 		classes.forEach((classObj) => {
+			// Получаем реальные размеры класса
+			const classSize = getClassSize(classObj, localCamera);
+
+			// Вычисляем позицию класса на экране (с учетом трансформации камеры)
 			const classX = classObj.position.x * localCamera.zoom + localCamera.offsetX;
 			const classY = classObj.position.y * localCamera.zoom + localCamera.offsetY;
-			const classWidth = 192 * localCamera.zoom; // min-w-48
-			const classHeight = 120 * localCamera.zoom; // примерная высота
+			const classWidth = classSize.width * localCamera.zoom;
+			const classHeight = classSize.height * localCamera.zoom;
 
-			// Проверяем пересечение прямоугольников
+			// Проверяем пересечение прямоугольников на экране
 			const isIntersecting =
 				classX < selectionRect.x + selectionRect.width && classX + classWidth > selectionRect.x && classY < selectionRect.y + selectionRect.height && classY + classHeight > selectionRect.y;
-
-			console.log(`Класс ${classObj.name}:`, {
-				classX,
-				classY,
-				classWidth,
-				classHeight,
-				selectionRect,
-				isIntersecting,
-			});
 
 			if (isIntersecting) {
 				selectedIds.push(classObj.id);
 			}
 		});
 
-		console.log("Selected classes:", selectedIds);
 		setSelectedClasses(selectedIds);
 		setIsDrawingSelection(false);
 		setSelectionRect(null);

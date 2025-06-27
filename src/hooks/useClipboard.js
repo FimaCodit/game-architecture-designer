@@ -7,7 +7,6 @@ export const useClipboard = (generateId, localCamera, updateCurrentArchitecture,
 		if (!classObj) return;
 
 		setCopiedClass(classObj);
-		console.log("Класс скопирован:", classObj.name);
 	}, []);
 
 	const pasteClass = useCallback(() => {
@@ -32,7 +31,6 @@ export const useClipboard = (generateId, localCamera, updateCurrentArchitecture,
 		const updatedClasses = [...currentArchitecture.classes, newClass];
 		updateCurrentArchitecture({ classes: updatedClasses });
 
-		console.log("Класс вставлен:", newClass.name);
 		return newClass;
 	}, [copiedClass, generateId, localCamera, currentArchitecture.classes, updateCurrentArchitecture]);
 

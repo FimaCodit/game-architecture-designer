@@ -71,8 +71,6 @@ const TemplateSelector = ({ onApplyTemplate, currentArchitecture, generateId }) 
 
 		setShowTemplateMenu(false);
 		setSelectedTemplate(null);
-
-		console.log(`Добавлен шаблон: ${template.name} (${templatedClasses.length} классов)`);
 	};
 
 	const handleTemplateSelect = (template) => {

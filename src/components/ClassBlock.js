@@ -1,6 +1,6 @@
 import React from "react";
 
-const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, handleClassClick, getDynamicClassColor, isSelected }) => {
+const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, handleClassClick, getDynamicClassColor, isSelected, localCamera }) => {
 	const isConnectionStart = connectionStart?.classId === classObj.id;
 
 	// Получаем цвет
@@ -13,16 +13,18 @@ const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, ha
 	return (
 		<div
 			data-class-id={classObj.id}
-			className={`class-block absolute bg-white border-2 rounded-lg shadow-md min-w-48 overflow-hidden ${isConnecting ? "cursor-pointer" : "cursor-move"} ${!isCustomColor ? classColor : ""} ${
-				selectedClass?.id === classObj.id || isSelected ? "ring-2 ring-blue-500 shadow-xl border-blue-400 bg-blue-50" : ""
-			} ${isConnectionStart ? "ring-2 ring-green-400" : ""}`}
+			className={`class-block absolute bg-white border-2 rounded-lg shadow-md min-w-48 overflow-hidden ${isConnecting ? "cursor-pointer" : isSelected ? "cursor-move" : "cursor-move"} ${
+				!isCustomColor ? classColor : ""
+			} ${isSelected ? "ring-2 ring-blue-500 shadow-xl border-blue-400 bg-blue-50" : ""} ${isConnectionStart ? "ring-2 ring-green-400" : ""}`}
 			style={{
-				left: classObj.position.x,
-				top: classObj.position.y,
+				left: classObj.position.x * localCamera.zoom + localCamera.offsetX,
+				top: classObj.position.y * localCamera.zoom + localCamera.offsetY,
+				transform: `scale(${localCamera.zoom})`,
+				transformOrigin: "top left",
 				userSelect: "none",
 				...(isCustomColor && {
-					backgroundColor: selectedClass?.id === classObj.id || isSelected ? "#3b82f620" : customColorHex + "20",
-					borderColor: selectedClass?.id === classObj.id || isSelected ? "#3b82f6" : customColorHex,
+					backgroundColor: isSelected ? "#3b82f620" : customColorHex + "20",
+					borderColor: isSelected ? "#3b82f6" : customColorHex,
 				}),
 			}}
 			onMouseDown={(e) => handleClassClick(e, classObj)}
@@ -37,9 +39,18 @@ const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, ha
 						: connectionStart
 						? "Кликните для создания связи"
 						: "Кликните для начала создания связи"
+					: isSelected
+					? "Перетащите для группового перемещения"
 					: "Перетащите для перемещения"
 			}
 		>
+			{/* Индикатор группового выделения */}
+			{isSelected && (
+				<div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
+					<span className="text-white text-xs font-bold">✓</span>
+				</div>
+			)}
+
 			<div className="bg-white p-2 border-b">
 				<div className="font-bold text-sm">{classObj.name}</div>
 				<div className="text-xs text-gray-600">{classObj.type}</div>

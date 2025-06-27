@@ -39,12 +39,14 @@ const AppContent = () => {
 		forceRender,
 	} = useArchitectures();
 
-	const { localCamera, canvasRef, handleCanvasMouseDown, zoomIn, zoomOut, resetCamera, isPanning } = useCamera(currentArchitecture.camera, updateCurrentArchitecture);
+	const { localCamera, canvasRef, handleCanvasMouseDown: originalHandleCanvasMouseDown, zoomIn, zoomOut, resetCamera, isPanning } = useCamera(currentArchitecture.camera, updateCurrentArchitecture);
 
 	const {
 		selectedClass,
 		setSelectedClass,
 		draggedClass,
+		isDraggingMultiple, // Добавляем
+		draggedMultipleClasses, // Добавляем
 		newClassForm,
 		setNewClassForm,
 		classes,
@@ -88,9 +90,15 @@ const AppContent = () => {
 		changeConnectionType,
 	} = useConnections(currentArchitecture, updateCurrentArchitecture, generateId, localCamera, canvasRef);
 
+	// Добавляем хук множественного выделения
+	const { isSelectionMode, selectedClasses, selectionRect, isDrawingSelection, startSelection, updateSelection, endSelection, clearSelection, isClassSelected, hasMultipleSelection } =
+		useMultiSelection(classes, localCamera, canvasRef);
+
 	// Глобальная обработка событий
 	useGlobalEventHandlers({
 		draggedClass,
+		isDraggingMultiple,
+		draggedMultipleClasses,
 		isConnecting,
 		connectionStart,
 		handleDragMove,
@@ -100,27 +108,41 @@ const AppContent = () => {
 		canvasRef,
 	});
 
-	// Обработчики событий
+	// Обработчики событий - ИСПРАВЛЯЕМ передачу параметров
 	const handleClassClick = createClassClickHandler({
 		isConnecting,
 		connectionStart,
 		startConnection,
 		finishConnection,
 		handleMouseDown,
+		selectedClasses,
+		isClassSelected,
 	});
 
-	// Добавляем хук множественного выделения
-	const { isSelectionMode, selectedClasses, selectionRect, isDrawingSelection, startSelection, updateSelection, endSelection, clearSelection, isClassSelected, hasMultipleSelection } =
-		useMultiSelection(classes, localCamera, canvasRef);
-
-	// Очищаем множественное выделение при обычном клике
+	// Обновленный обработчик клика по канвасу
 	const handleCanvasClick = createCanvasClickHandler({
 		isConnecting,
 		connectionStart,
 		resetCurrentConnection,
 		setSelectedClass,
 		clearSelection,
+		isSelectionMode,
+		startSelection,
 	});
+
+	// Обработчик mouseDown для канваса
+	const handleCanvasMouseDown = (e) => {
+		// Если режим выделения активен, начинаем выделение
+		if (isSelectionMode && e.button === 0) {
+			const started = startSelection(e);
+			if (started) {
+				return; // Не продолжаем обработку
+			}
+		}
+
+		// Иначе обычная обработка камеры
+		originalHandleCanvasMouseDown(e);
+	};
 
 	// Обновленный обработчик режима связей
 	const handleToggleConnectionMode = () => {
@@ -148,16 +170,14 @@ const AppContent = () => {
 				newClassForm={newClassForm}
 				setNewClassForm={setNewClassForm}
 				addCustomClass={async () => {
-					console.log("App: addCustomClass wrapper called");
 					try {
 						const result = await addCustomClass(localCamera);
-						console.log("App: addCustomClass result:", result);
 						if (result) {
 							return result;
 						}
 						return false;
 					} catch (error) {
-						console.error("App: Error in addCustomClass wrapper:", error);
+						console.error("Error in addCustomClass:", error);
 						throw error;
 					}
 				}}
@@ -200,7 +220,7 @@ const AppContent = () => {
 					connectionPreview={connectionPreview}
 					selectedClass={selectedClass}
 					isConnecting={isConnecting}
-					connectionStart={connectionStart}
+					connectionStart={connectionStart} // Добавляем недостающий проп
 					draggedClass={draggedClass}
 					localCamera={localCamera}
 					canvasRef={canvasRef}

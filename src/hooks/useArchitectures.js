@@ -34,12 +34,7 @@ export const useArchitectures = () => {
 
 	// Добавим логирование для отладки
 	useEffect(() => {
-		console.log("useArchitectures: Current state:");
-		console.log("- user:", user ? user.uid : "no user");
-		console.log("- architectures count:", architectures.length);
-		console.log("- currentArchitectureId:", currentArchitectureId);
-		console.log("- currentArchitecture:", currentArchitecture);
-		console.log("- classes count:", currentArchitecture.classes?.length || 0);
+		// Удаляем логирование
 	}, [user, architectures, currentArchitectureId, currentArchitecture]);
 
 	// Инициализация при авторизации/выходе
@@ -82,13 +77,11 @@ export const useArchitectures = () => {
 
 			// ИЗМЕНЕНО: Загружаем архитектуры один раз, без realtime подписки
 			const userArchitectures = await firestoreService.getUserArchitectures(user.uid);
-			console.log("useArchitectures: Loaded architectures from Firebase:", userArchitectures.length);
 
 			setArchitectures(userArchitectures);
 
 			// Если у пользователя нет архитектур, создаем дефолтную
 			if (userArchitectures.length === 0) {
-				console.log("useArchitectures: No architectures found, creating default...");
 				try {
 					await createNewArchitecture("Моя первая архитектура");
 					return;
@@ -99,13 +92,11 @@ export const useArchitectures = () => {
 
 			// Устанавливаем текущую архитектуру если она не выбрана
 			if (!currentArchitectureId && userArchitectures.length > 0) {
-				console.log("useArchitectures: Setting current architecture to:", userArchitectures[0].id);
 				setCurrentArchitectureId(userArchitectures[0].id);
 			}
 
 			// Если выбранная архитектура была удалена, выбираем первую доступную
 			if (currentArchitectureId && !userArchitectures.find((arch) => arch.id === currentArchitectureId)) {
-				console.log("useArchitectures: Current architecture not found, switching to:", userArchitectures[0]?.id);
 				setCurrentArchitectureId(userArchitectures[0]?.id || null);
 			}
 		} catch (err) {
@@ -119,21 +110,16 @@ export const useArchitectures = () => {
 	// Обновление архитектуры (с дебаунсингом для оптимизации)
 	const updateCurrentArchitecture = useCallback(
 		async (updates) => {
-			console.log("useArchitectures: updateCurrentArchitecture called");
-			console.log("updates:", updates);
-
 			// Проверяем если это обновление цветов
 			if (updates.customCategoryColors) {
 				setForceRender((prev) => prev + 1); // Принудительно обновляем счетчик
 			}
 
 			if (user && currentArchitectureId) {
-				console.log("useArchitectures: Authenticated user mode");
-
 				// Сразу обновляем локальное состояние
 				setArchitectures((prev) => {
 					const updated = prev.map((arch) => (arch.id === currentArchitectureId ? { ...arch, ...updates, lastModified: new Date().toISOString() } : arch));
-					console.log("useArchitectures: Local state updated");
+
 					return updated;
 				});
 
@@ -148,9 +134,8 @@ export const useArchitectures = () => {
 				// Отправляем обновление в Firebase с задержкой
 				updateTimeoutRef.current = setTimeout(async () => {
 					try {
-						console.log("useArchitectures: Sending update to Firebase...");
 						await firestoreService.updateArchitecture(currentArchitectureId, updates);
-						console.log("useArchitectures: Firebase update successful");
+
 						setSyncStatus("synced");
 						updateTimeoutRef.current = null;
 					} catch (err) {
@@ -161,7 +146,6 @@ export const useArchitectures = () => {
 					}
 				}, 300); // Еще быстрее - 300мс
 			} else {
-				console.log("useArchitectures: Local user mode");
 				// Для неавторизованных пользователей обновляем локально
 				setLocalArchitecture((prev) => ({
 					...prev,
@@ -176,12 +160,9 @@ export const useArchitectures = () => {
 	// Создание новой архитектуры
 	const createNewArchitecture = useCallback(
 		async (name = "Новая архитектура") => {
-			console.log("useArchitectures: createNewArchitecture called with name:", name);
-
 			if (user) {
 				try {
 					setLoading(true);
-					console.log("useArchitectures: Creating architecture in Firebase...");
 
 					const newArchitecture = {
 						name: name,
@@ -192,7 +173,6 @@ export const useArchitectures = () => {
 					};
 
 					const createdArch = await firestoreService.createArchitecture(user.uid, newArchitecture);
-					console.log("useArchitectures: Architecture created with ID:", createdArch.id);
 
 					// ИЗМЕНЕНО: Обновляем локальное состояние сразу
 					setArchitectures((prev) => [...prev, createdArch]);
@@ -204,7 +184,6 @@ export const useArchitectures = () => {
 					setLoading(false);
 				}
 			} else {
-				console.log("useArchitectures: Creating local architecture...");
 				// Для неавторизованных пользователей создаем локально
 				const newArch = {
 					...createDefaultArchitecture(),
@@ -307,17 +286,14 @@ export const useArchitectures = () => {
 	// Применение шаблона архитектуры
 	const applyTemplate = useCallback(
 		async (templateData) => {
-			console.log("useArchitectures: applyTemplate called", templateData);
-
 			try {
 				await updateCurrentArchitecture({
 					classes: templateData.classes,
 					connections: templateData.connections,
 					categories: templateData.categories,
 				});
-				console.log("useArchitectures: Template applied successfully");
 			} catch (error) {
-				console.error("useArchitectures: Error applying template:", error);
+				console.error("Error applying template:", error);
 				throw error;
 			}
 		},

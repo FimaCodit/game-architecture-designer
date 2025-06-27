@@ -1,8 +1,5 @@
-export const createClassClickHandler = ({ isConnecting, connectionStart, startConnection, finishConnection, handleMouseDown }) => {
+export const createClassClickHandler = ({ isConnecting, connectionStart, startConnection, finishConnection, handleMouseDown, selectedClasses = [], isClassSelected = () => false }) => {
 	return (e, classObj) => {
-		e.preventDefault();
-		e.stopPropagation();
-
 		if (isConnecting) {
 			if (!connectionStart) {
 				const centerX = classObj.position.x + 96;
@@ -13,6 +10,8 @@ export const createClassClickHandler = ({ isConnecting, connectionStart, startCo
 			}
 			return;
 		}
-		handleMouseDown(e, classObj);
+
+		// Передаем информацию о множественном выделении
+		handleMouseDown(e, classObj, selectedClasses, isClassSelected);
 	};
 };

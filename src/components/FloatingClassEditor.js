@@ -12,15 +12,9 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 
 	useEffect(() => {
 		if (selectedClass && editorRef.current) {
-			console.log("Positioning editor for class:", selectedClass.name);
-			console.log("Class position:", selectedClass.position);
-			console.log("Camera:", localCamera);
-
 			// Позиционируем редактор всегда справа от класса
 			const classX = selectedClass.position.x * localCamera.zoom + localCamera.offsetX;
 			const classY = selectedClass.position.y * localCamera.zoom + localCamera.offsetY;
-
-			console.log("Calculated class screen position:", { classX, classY });
 
 			// Размеры класса с учетом масштаба (min-w-48 = 192px в Tailwind)
 			const classWidth = 192 * localCamera.zoom; // Учитываем масштаб!
@@ -29,9 +23,6 @@ const FloatingClassEditor = ({ selectedClass, classCategories, onUpdateProperty,
 			// Размещаем левый край редактора к правому краю класса
 			const editorX = classX + classWidth + spacing;
 			const editorY = classY;
-
-			console.log("Class width with zoom:", classWidth);
-			console.log("Setting editor position:", { editorX, editorY });
 
 			setPosition({ x: editorX, y: editorY });
 		}

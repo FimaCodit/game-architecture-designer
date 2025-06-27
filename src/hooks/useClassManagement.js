@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useClipboard } from "./useClipboard";
 
 export const useClassManagement = (currentArchitecture, updateCurrentArchitecture, generateId) => {
@@ -6,6 +6,10 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 	const [draggedClass, setDraggedClass] = useState(null);
 	const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 	const [newClassForm, setNewClassForm] = useState({ name: "", type: "Gameplay" });
+
+	const [isDraggingMultiple, setIsDraggingMultiple] = useState(false);
+	const [draggedMultipleClasses, setDraggedMultipleClasses] = useState([]);
+	const [multiDragStartPositions, setMultiDragStartPositions] = useState({});
 
 	const classes = currentArchitecture.classes;
 	const classCategories = currentArchitecture.categories;
@@ -43,14 +47,7 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 	}, [selectedClass, copyClass]);
 
 	const addCustomClass = async (localCamera) => {
-		console.log("useClassManagement: addCustomClass called");
-		console.log("newClassForm:", newClassForm);
-		console.log("localCamera:", localCamera);
-		console.log("classCategories:", classCategories);
-		console.log("classes count before:", classes.length);
-
 		if (!newClassForm.name.trim()) {
-			console.warn("useClassManagement: Empty class name");
 			return false;
 		}
 
@@ -67,22 +64,13 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 				methods: [],
 			};
 
-			console.log("useClassManagement: Creating new class:", newClass);
-
 			const updatedClasses = [...classes, newClass];
-			console.log("useClassManagement: Updated classes array length:", updatedClasses.length);
-
-			console.log("useClassManagement: Calling updateCurrentArchitecture...");
 			await updateCurrentArchitecture({ classes: updatedClasses });
-			console.log("useClassManagement: updateCurrentArchitecture completed");
-
-			console.log("useClassManagement: Resetting form...");
 			setNewClassForm({ name: "", type: classCategories[0] || "" });
-			console.log("useClassManagement: Form reset completed");
 
 			return true;
 		} catch (error) {
-			console.error("useClassManagement: Error in addCustomClass:", error);
+			console.error("Error in addCustomClass:", error);
 			throw error;
 		}
 	};
@@ -131,34 +119,113 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		}
 	};
 
-	const handleMouseDown = (e, classObj) => {
-		e.stopPropagation();
-		e.preventDefault();
-		if (e.target.closest(".no-drag")) return;
+	const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-		const rect = e.currentTarget.getBoundingClientRect();
-		setDragOffset({
-			x: e.clientX - rect.left,
-			y: e.clientY - rect.top,
-		});
-		setDraggedClass(classObj);
-		setSelectedClass(classObj);
-	};
+	// Исправленный handleMouseDown
+	const handleMouseDown = useCallback(
+		(e, classObj, selectedClasses = [], isClassSelected = () => false) => {
+			if (e.button !== 0) return; // Только левая кнопка мыши
 
-	const handleDragMove = (e, localCamera, canvasRef) => {
-		if (!draggedClass || !canvasRef.current) return;
+			e.preventDefault();
+			e.stopPropagation();
 
-		const canvasRect = canvasRef.current.getBoundingClientRect();
-		const newX = (e.clientX - canvasRect.left - dragOffset.x - localCamera.offsetX) / localCamera.zoom;
-		const newY = (e.clientY - canvasRect.top - dragOffset.y - localCamera.offsetY) / localCamera.zoom;
+			// Проверяем, является ли этот класс частью множественного выделения
+			const isPartOfSelection = selectedClasses.length > 1 && isClassSelected(classObj.id);
 
-		const updatedClasses = classes.map((c) => (c.id === draggedClass.id ? { ...c, position: { x: newX, y: newY } } : c));
-		updateCurrentArchitecture({ classes: updatedClasses });
-	};
+			if (isPartOfSelection) {
+				// Групповое перетаскивание
+				setIsDraggingMultiple(true);
+				setDraggedMultipleClasses(selectedClasses);
 
-	const handleDragEnd = () => {
-		setDraggedClass(null);
-	};
+				// Сохраняем начальные позиции всех выделенных классов
+				const startPositions = {};
+				selectedClasses.forEach((classId) => {
+					const cls = currentArchitecture.classes.find((c) => c.id === classId);
+					if (cls) {
+						startPositions[classId] = { ...cls.position };
+					}
+				});
+				setMultiDragStartPositions(startPositions);
+
+				setDragStart({
+					x: e.clientX,
+					y: e.clientY,
+				});
+			} else {
+				// Обычное перетаскивание одного класса
+				setDraggedClass(classObj);
+
+				// Правильный расчет offset для одиночного перетаскивания
+				const classScreenX = classObj.position.x * localCamera.zoom + localCamera.offsetX;
+				const classScreenY = classObj.position.y * localCamera.zoom + localCamera.offsetY;
+
+				setDragStart({
+					x: e.clientX - classScreenX,
+					y: e.clientY - classScreenY,
+				});
+			}
+
+			setSelectedClass(classObj);
+		},
+		[currentArchitecture, localCamera, setSelectedClass],
+	);
+
+	// Исправленный handleDragMove
+	const handleDragMove = useCallback(
+		(e) => {
+			if (isDraggingMultiple && draggedMultipleClasses.length > 0) {
+				// Групповое перемещение
+				const deltaX = (e.clientX - dragStart.x) / localCamera.zoom;
+				const deltaY = (e.clientY - dragStart.y) / localCamera.zoom;
+
+				const updatedClasses = currentArchitecture.classes.map((cls) => {
+					if (draggedMultipleClasses.includes(cls.id)) {
+						const startPos = multiDragStartPositions[cls.id];
+						if (startPos) {
+							return {
+								...cls,
+								position: {
+									x: startPos.x + deltaX,
+									y: startPos.y + deltaY,
+								},
+							};
+						}
+					}
+					return cls;
+				});
+
+				updateCurrentArchitecture({ classes: updatedClasses });
+			} else if (draggedClass) {
+				// Обычное перемещение одного класса
+				const newX = (e.clientX - dragStart.x - localCamera.offsetX) / localCamera.zoom;
+				const newY = (e.clientY - dragStart.y - localCamera.offsetY) / localCamera.zoom;
+
+				const updatedClasses = currentArchitecture.classes.map((cls) =>
+					cls.id === draggedClass.id
+						? {
+								...cls,
+								position: { x: newX, y: newY },
+						  }
+						: cls,
+				);
+
+				updateCurrentArchitecture({ classes: updatedClasses });
+			}
+		},
+		[isDraggingMultiple, draggedMultipleClasses, multiDragStartPositions, draggedClass, dragStart, localCamera, currentArchitecture, updateCurrentArchitecture],
+	);
+
+	// Обновленный handleDragEnd
+	const handleDragEnd = useCallback(() => {
+		if (isDraggingMultiple) {
+			setIsDraggingMultiple(false);
+			setDraggedMultipleClasses([]);
+			setMultiDragStartPositions({});
+		} else {
+			setDraggedClass(null);
+		}
+		setDragStart({ x: 0, y: 0 });
+	}, [isDraggingMultiple]);
 
 	// Функция для обновления камеры (будет вызываться из App)
 	const updateLocalCamera = (camera) => {
@@ -169,6 +236,8 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		selectedClass,
 		setSelectedClass,
 		draggedClass,
+		isDraggingMultiple, // Добавляем
+		draggedMultipleClasses, // Добавляем
 		dragOffset,
 		newClassForm,
 		setNewClassForm,
@@ -182,7 +251,6 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		handleMouseDown,
 		handleDragMove,
 		handleDragEnd,
-		// Добавляем функции буфера обмена
 		copyClass,
 		pasteClass,
 		hasCopiedClass,

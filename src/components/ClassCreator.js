@@ -3,10 +3,6 @@ import { Plus } from "lucide-react";
 
 const ClassCreator = ({ newClassForm, setNewClassForm, classCategories, onAddClass }) => {
 	const handleSubmit = async () => {
-		console.log("ClassCreator: handleSubmit called");
-		console.log("newClassForm:", newClassForm);
-		console.log("classCategories:", classCategories);
-
 		if (!newClassForm.name.trim()) {
 			console.warn("ClassCreator: Empty class name");
 			alert("Введите название класса");
@@ -20,14 +16,10 @@ const ClassCreator = ({ newClassForm, setNewClassForm, classCategories, onAddCla
 		}
 
 		try {
-			console.log("ClassCreator: Calling onAddClass...");
 			const result = await onAddClass();
-			console.log("ClassCreator: onAddClass result:", result);
 
 			if (result) {
-				console.log("ClassCreator: Class added successfully");
 			} else {
-				console.log("ClassCreator: Class was not added");
 			}
 		} catch (error) {
 			console.error("ClassCreator: Error adding class:", error);
@@ -49,7 +41,6 @@ const ClassCreator = ({ newClassForm, setNewClassForm, classCategories, onAddCla
 				placeholder="Название класса"
 				value={newClassForm.name}
 				onChange={(e) => {
-					console.log("ClassCreator: Name changed to:", e.target.value);
 					setNewClassForm((prev) => ({ ...prev, name: e.target.value }));
 				}}
 				onKeyPress={handleKeyPress}
@@ -58,7 +49,6 @@ const ClassCreator = ({ newClassForm, setNewClassForm, classCategories, onAddCla
 			<select
 				value={newClassForm.type}
 				onChange={(e) => {
-					console.log("ClassCreator: Type changed to:", e.target.value);
 					setNewClassForm((prev) => ({ ...prev, type: e.target.value }));
 				}}
 				className="w-full p-2 border rounded mb-2"

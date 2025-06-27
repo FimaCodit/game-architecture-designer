@@ -32,9 +32,6 @@ const CategoryManagement = ({ classCategories, classes, updateCurrentArchitectur
 			[category]: colorString,
 		};
 
-		console.log("Изменяем цвет категории:", category, "на:", colorString);
-		console.log("Новые customColors:", updatedCustomColors);
-
 		updateCurrentArchitecture({
 			customCategoryColors: updatedCustomColors,
 			lastModified: new Date().toISOString(),
@@ -49,9 +46,6 @@ const CategoryManagement = ({ classCategories, classes, updateCurrentArchitectur
 			...customColors,
 			[category]: colorString,
 		};
-
-		console.log("Изменяем цвет категории на кастомный:", category, "на:", color);
-		console.log("Новые customColors:", updatedCustomColors);
 
 		updateCurrentArchitecture({
 			customCategoryColors: updatedCustomColors,
@@ -71,9 +65,6 @@ const CategoryManagement = ({ classCategories, classes, updateCurrentArchitectur
 	const resetCategoryColor = (category) => {
 		const updatedCustomColors = { ...customColors };
 		delete updatedCustomColors[category];
-
-		console.log("Сбрасываем цвет категории:", category);
-		console.log("Новые customColors:", updatedCustomColors);
 
 		updateCurrentArchitecture({
 			customCategoryColors: updatedCustomColors,
@@ -95,12 +86,6 @@ const CategoryManagement = ({ classCategories, classes, updateCurrentArchitectur
 								{(() => {
 									const calculatedColor = getDynamicClassColor(category, customColors);
 									const previewColor = getColorPreview(calculatedColor);
-
-									console.log(`Индикатор для ${category}:`, {
-										customColors: customColors[category],
-										calculatedColor,
-										previewColor,
-									});
 
 									return (
 										<div
@@ -176,12 +161,6 @@ const CategoryManagement = ({ classCategories, classes, updateCurrentArchitectur
 											} else {
 												currentColor = getColorPreview(getDynamicClassColor(category, {}));
 											}
-
-											console.log(`Color picker для ${category}:`, {
-												selectedCustomColor,
-												customColorForCategory: customColors[category],
-												calculatedCurrentColor: currentColor,
-											});
 
 											return (
 												<input

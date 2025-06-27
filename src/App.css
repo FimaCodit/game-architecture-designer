@@ -56,7 +56,21 @@
 	transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-/* Анимация для кнопки удаления связи */
-.connection-delete-btn {
-	transition: opacity 0.2s ease, transform 0.2s ease;
+/* Стили для области выделения */
+.selection-overlay {
+	position: absolute;
+	border: 2px dashed #3b82f6;
+	background-color: rgba(59, 130, 246, 0.1);
+	pointer-events: none;
+	z-index: 1000;
+}
+
+/* Анимация для курсора в режиме выделения */
+.selection-cursor {
+	cursor: crosshair !important;
+}
+
+/* Стили для выделенных классов */
+.class-block.multi-selected {
+	box-shadow: 0 0 0 2px #8b5cf6, 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
