@@ -69,11 +69,12 @@ export const calculateConnectionPath = (fromClass, toClass, camera) => {
 		toX = toCenterX;
 		toY = toClass.position.y; // верхний край второго класса
 
-		// Убираем кривизну для прямой линии
+		// Кривая Безье для вертикальной связи
+		const midY = fromY + (toY - fromY) / 2;
 		controlX1 = fromX;
-		controlY1 = fromY;
+		controlY1 = midY;
 		controlX2 = toX;
-		controlY2 = toY;
+		controlY2 = midY;
 	}
 	// Если второй класс выше первого - линия идет от верхнего края первого к нижнему краю второго
 	else if (dy < -Math.abs(dx)) {
@@ -83,11 +84,12 @@ export const calculateConnectionPath = (fromClass, toClass, camera) => {
 		toX = toCenterX;
 		toY = toClass.position.y + toBlockHeight; // нижний край второго класса
 
-		// Убираем кривизну для прямой линии
+		// Кривая Безье для вертикальной связи
+		const midY = fromY + (toY - fromY) / 2;
 		controlX1 = fromX;
-		controlY1 = fromY;
+		controlY1 = midY;
 		controlX2 = toX;
-		controlY2 = toY;
+		controlY2 = midY;
 	}
 	// Если второй класс справа от первого - линия идет от правого края первого к левому краю второго
 	else if (dx > 0) {
@@ -97,10 +99,11 @@ export const calculateConnectionPath = (fromClass, toClass, camera) => {
 		toX = toClass.position.x; // левый край второго класса
 		toY = toCenterY;
 
-		// Убираем кривизну для прямой линии
-		controlX1 = fromX;
+		// Кривая Безье для горизонтальной связи
+		const midX = fromX + (toX - fromX) / 2;
+		controlX1 = midX;
 		controlY1 = fromY;
-		controlX2 = toX;
+		controlX2 = midX;
 		controlY2 = toY;
 	}
 	// Если второй класс слева от первого - линия идет от левого края первого к правому краю второго
@@ -111,10 +114,11 @@ export const calculateConnectionPath = (fromClass, toClass, camera) => {
 		toX = toClass.position.x + blockWidth; // правый край второго класса
 		toY = toCenterY;
 
-		// Убираем кривизну для прямой линии
-		controlX1 = fromX;
+		// Кривая Безье для горизонтальной связи
+		const midX = fromX + (toX - fromX) / 2;
+		controlX1 = midX;
 		controlY1 = fromY;
-		controlX2 = toX;
+		controlX2 = midX;
 		controlY2 = toY;
 	}
 

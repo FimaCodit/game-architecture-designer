@@ -83,13 +83,25 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 	};
 
 	const addProperty = (classId) => {
-		const updatedClasses = classes.map((c) => (c.id === classId ? { ...c, properties: [...c.properties, { name: "newProperty", type: "int", access: "private" }] } : c));
+		const newProperty = { name: "newProperty", type: "int", access: "private" };
+		const updatedClasses = classes.map((c) => (c.id === classId ? { ...c, properties: [...c.properties, newProperty] } : c));
 		updateCurrentArchitecture({ classes: updatedClasses });
+
+		// Обновляем выбранный класс если он редактируется
+		if (selectedClass?.id === classId) {
+			setSelectedClass((prev) => (prev ? { ...prev, properties: [...prev.properties, newProperty] } : null));
+		}
 	};
 
 	const addMethod = (classId) => {
-		const updatedClasses = classes.map((c) => (c.id === classId ? { ...c, methods: [...c.methods, { name: "newMethod", params: "", returnType: "void", access: "public" }] } : c));
+		const newMethod = { name: "newMethod", params: "", returnType: "void", access: "public" };
+		const updatedClasses = classes.map((c) => (c.id === classId ? { ...c, methods: [...c.methods, newMethod] } : c));
 		updateCurrentArchitecture({ classes: updatedClasses });
+
+		// Обновляем выбранный класс если он редактируется
+		if (selectedClass?.id === classId) {
+			setSelectedClass((prev) => (prev ? { ...prev, methods: [...prev.methods, newMethod] } : null));
+		}
 	};
 
 	const handleMouseDown = (e, classObj) => {

@@ -86,6 +86,13 @@ export const useArchitectures = () => {
 
 			unsubscribeRef.current = firestoreService.subscribeToUserArchitectures(user.uid, async (userArchitectures) => {
 				console.log("useArchitectures: Received architectures from Firebase:", userArchitectures.length);
+
+				// НЕ обновляем если есть pending изменения
+				if (updateTimeoutRef.current) {
+					console.log("useArchitectures: Skipping Firebase update - local changes pending");
+					return;
+				}
+
 				setArchitectures(userArchitectures);
 
 				// Если у пользователя нет архитектур, создаем дефолтную
@@ -156,12 +163,14 @@ export const useArchitectures = () => {
 						await firestoreService.updateArchitecture(currentArchitectureId, updates);
 						console.log("useArchitectures: Firebase update successful");
 						setSyncStatus("synced");
+						updateTimeoutRef.current = null; // Очищаем ссылку после успешного обновления
 					} catch (err) {
 						console.error("useArchitectures: Error updating architecture:", err);
 						setSyncStatus("error");
 						setError(err.message);
+						updateTimeoutRef.current = null; // Очищаем ссылку при ошибке
 					}
-				}, 1000); // Задержка 1 секунда
+				}, 500); // Уменьшаем задержку до 500мс для более быстрой синхронизации
 			} else {
 				console.log("useArchitectures: Local user mode - no current architecture ID or not authenticated");
 				// Для неавторизованных пользователей обновляем локально

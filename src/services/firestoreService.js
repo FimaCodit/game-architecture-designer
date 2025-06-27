@@ -203,22 +203,6 @@ class FirestoreService {
 			return null;
 		}
 	}
-
-	// Пакетное обновление архитектуры (для оптимизации)
-	async batchUpdateArchitecture(architectureId, updates) {
-		// Добавляем дебаунсинг для избежания частых обновлений
-		if (this.updateTimeout) {
-			clearTimeout(this.updateTimeout);
-		}
-
-		this.updateTimeout = setTimeout(async () => {
-			try {
-				await this.updateArchitecture(architectureId, updates);
-			} catch (error) {
-				console.error("Batch update error:", error);
-			}
-		}, 1000); // Обновляем не чаще чем раз в секунду
-	}
 }
 
 export const firestoreService = new FirestoreService();
