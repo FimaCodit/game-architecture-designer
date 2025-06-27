@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useArchitectures } from "./hooks/useArchitectures";
 import { useCamera } from "./hooks/useCamera";
 import { useClassManagement } from "./hooks/useClassManagement";
 import { useConnections } from "./hooks/useConnections";
+import { useMultiSelection } from "./hooks/useMultiSelection";
 import { useGlobalEventHandlers } from "./hooks/useGlobalEventHandlers";
 import { createClassClickHandler } from "./handlers/classClickHandler";
 import { createCanvasClickHandler } from "./handlers/canvasClickHandler";
@@ -34,6 +35,7 @@ const AppContent = () => {
 		clearError,
 		forceSync,
 		isAuthenticated,
+		forceRender,
 	} = useArchitectures();
 
 	const { localCamera, canvasRef, handleCanvasMouseDown, zoomIn, zoomOut, resetCamera, isPanning } = useCamera(currentArchitecture.camera, updateCurrentArchitecture);
@@ -54,20 +56,35 @@ const AppContent = () => {
 		handleMouseDown,
 		handleDragMove,
 		handleDragEnd,
+		// Добавляем функции буфера обмена
+		copyClass,
+		pasteClass,
+		hasCopiedClass,
+		copiedClass,
+		updateLocalCamera,
 	} = useClassManagement(currentArchitecture, updateCurrentArchitecture, generateId);
 
+	// Обновляем камеру в хуке управления классами
+	useEffect(() => {
+		updateLocalCamera(localCamera);
+	}, [localCamera, updateLocalCamera]);
+
+	// Обновленный хук useConnections с поддержкой типов связей
 	const {
 		isConnecting,
 		connectionStart,
 		connectionPreview,
 		connections,
+		selectedConnectionType,
 		enableConnectionMode,
+		toggleConnectionMode,
 		startConnection,
 		updateConnectionPreview,
 		finishConnection,
 		cancelConnection,
 		resetCurrentConnection,
 		deleteConnection,
+		changeConnectionType,
 	} = useConnections(currentArchitecture, updateCurrentArchitecture, generateId, localCamera, canvasRef);
 
 	// Глобальная обработка событий
@@ -91,19 +108,28 @@ const AppContent = () => {
 		handleMouseDown,
 	});
 
+	// Добавляем хук множественного выделения
+	const { isSelectionMode, selectedClasses, selectionRect, isDrawingSelection, startSelection, updateSelection, endSelection, clearSelection, isClassSelected, hasMultipleSelection } =
+		useMultiSelection(classes, localCamera, canvasRef);
+
+	// Очищаем множественное выделение при обычном клике
 	const handleCanvasClick = createCanvasClickHandler({
 		isConnecting,
 		connectionStart,
 		resetCurrentConnection,
 		setSelectedClass,
+		clearSelection,
 	});
 
-	const toggleConnectionMode = createConnectionModeToggler({
-		isConnecting,
-		cancelConnection,
-		enableConnectionMode,
-		setSelectedClass,
-	});
+	// Обновленный обработчик режима связей
+	const handleToggleConnectionMode = () => {
+		if (isConnecting) {
+			cancelConnection();
+		} else {
+			enableConnectionMode();
+		}
+		setSelectedClass(null);
+	};
 
 	return (
 		<div className="h-screen flex bg-gray-50 relative">
@@ -125,52 +151,73 @@ const AppContent = () => {
 					try {
 						const result = await addCustomClass(localCamera);
 						console.log("App: addCustomClass result:", result);
-						return result;
+						if (result) {
+							return result;
+						}
+						return false;
 					} catch (error) {
 						console.error("App: Error in addCustomClass wrapper:", error);
 						throw error;
 					}
 				}}
 				isConnecting={isConnecting}
-				toggleConnectionMode={toggleConnectionMode}
+				toggleConnectionMode={handleToggleConnectionMode}
 				connectionsCount={connections.length}
+				selectedConnectionType={selectedConnectionType}
+				onConnectionTypeChange={changeConnectionType}
 				currentArchitecture={currentArchitecture}
 				selectedClass={selectedClass}
 				updateClassProperty={updateClassProperty}
 				addProperty={addProperty}
 				addMethod={addMethod}
-				deleteClass={(classId) => {
-					deleteClass(classId);
-					setSelectedClass(null);
-				}}
+				deleteClass={deleteClass}
 				loading={loading}
 				error={error}
 				syncStatus={syncStatus}
 				clearError={clearError}
 				forceSync={forceSync}
 				isAuthenticated={isAuthenticated}
+				copyClass={copyClass}
+				pasteClass={pasteClass}
+				hasCopiedClass={hasCopiedClass}
+				copiedClass={copiedClass}
+				// Добавляем пропсы для множественного выделения
+				hasMultipleSelection={hasMultipleSelection}
+				selectedClasses={selectedClasses}
 			/>
 
-			<SidebarToggle isSidebarVisible={isSidebarVisible} setIsSidebarVisible={setIsSidebarVisible} />
+			<div className="flex-1 flex flex-col relative">
+				<SidebarToggle isVisible={isSidebarVisible} onToggle={() => setIsSidebarVisible(!isSidebarVisible)} />
 
-			<WorkspaceArea
-				isSidebarVisible={isSidebarVisible}
-				canvasRef={canvasRef}
-				localCamera={localCamera}
-				isPanning={isPanning}
-				handleCanvasMouseDown={handleCanvasMouseDown}
-				handleCanvasClick={handleCanvasClick}
-				connections={connections}
-				connectionPreview={connectionPreview}
-				classes={classes}
-				isConnecting={isConnecting}
-				connectionStart={connectionStart}
-				selectedClass={selectedClass}
-				handleClassClick={handleClassClick}
-				deleteConnection={deleteConnection}
-			/>
+				<WorkspaceArea
+					currentArchitecture={currentArchitecture}
+					classes={classes}
+					connections={connections}
+					connectionPreview={connectionPreview}
+					selectedClass={selectedClass}
+					isConnecting={isConnecting}
+					connectionStart={connectionStart}
+					draggedClass={draggedClass}
+					localCamera={localCamera}
+					canvasRef={canvasRef}
+					handleCanvasMouseDown={handleCanvasMouseDown}
+					handleCanvasClick={handleCanvasClick}
+					handleClassClick={handleClassClick}
+					deleteConnection={deleteConnection}
+					isPanning={isPanning}
+					forceRender={forceRender}
+					isSelectionMode={isSelectionMode}
+					selectionRect={selectionRect}
+					isDrawingSelection={isDrawingSelection}
+					startSelection={startSelection}
+					updateSelection={updateSelection}
+					endSelection={endSelection}
+					selectedClasses={selectedClasses}
+					isClassSelected={isClassSelected}
+				/>
 
-			<FloatingCameraControls localCamera={localCamera} zoomIn={zoomIn} zoomOut={zoomOut} resetCamera={resetCamera} />
+				<FloatingCameraControls onZoomIn={zoomIn} onZoomOut={zoomOut} onResetCamera={resetCamera} zoom={localCamera?.zoom || 1} />
+			</div>
 		</div>
 	);
 };

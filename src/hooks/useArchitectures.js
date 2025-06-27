@@ -18,7 +18,8 @@ export const useArchitectures = () => {
 	const [currentArchitectureId, setCurrentArchitectureId] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
-	const [syncStatus, setSyncStatus] = useState("synced"); // 'syncing', 'synced', 'error'
+	const [syncStatus, setSyncStatus] = useState("synced");
+	const [forceRender, setForceRender] = useState(0); // Добавляем счетчик принудительного обновления
 
 	// Локальная архитектура для неавторизованных пользователей
 	const [localArchitecture, setLocalArchitecture] = useState(createDefaultArchitecture());
@@ -120,6 +121,11 @@ export const useArchitectures = () => {
 		async (updates) => {
 			console.log("useArchitectures: updateCurrentArchitecture called");
 			console.log("updates:", updates);
+
+			// Проверяем если это обновление цветов
+			if (updates.customCategoryColors) {
+				setForceRender((prev) => prev + 1); // Принудительно обновляем счетчик
+			}
 
 			if (user && currentArchitectureId) {
 				console.log("useArchitectures: Authenticated user mode");
@@ -325,6 +331,8 @@ export const useArchitectures = () => {
 		syncStatus,
 		clearError,
 		forceSync,
+
 		isAuthenticated: !!user,
+		forceRender, // Добавляем в возвращаемые значения
 	};
 };

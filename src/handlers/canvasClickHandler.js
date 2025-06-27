@@ -1,12 +1,19 @@
-export const createCanvasClickHandler = ({ isConnecting, connectionStart, resetCurrentConnection, setSelectedClass }) => {
+export const createCanvasClickHandler = ({ isConnecting, connectionStart, resetCurrentConnection, setSelectedClass, clearSelection }) => {
 	return (e) => {
-		if (isConnecting && connectionStart && !e.target.closest(".class-block")) {
-			resetCurrentConnection();
+		if (isConnecting && connectionStart) {
+			// В режиме создания связей ничего не делаем
+			return;
 		}
 
-		// Сбрасываем выбранный класс при клике по пустому месту
-		if (!e.target.closest(".class-block")) {
-			setSelectedClass(null);
+		// Снимаем выделение класса и очищаем множественное выделение
+		setSelectedClass(null);
+		if (clearSelection) {
+			clearSelection();
+		}
+
+		// Отменяем создание связи если оно было начато
+		if (isConnecting) {
+			resetCurrentConnection();
 		}
 	};
 };

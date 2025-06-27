@@ -1,18 +1,28 @@
 import React from "react";
 
-const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, handleClassClick, getDynamicClassColor }) => {
-	const isSelected = selectedClass?.id === classObj.id;
+const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, handleClassClick, getDynamicClassColor, isSelected }) => {
 	const isConnectionStart = connectionStart?.classId === classObj.id;
+
+	// Получаем цвет
+	const classColor = getDynamicClassColor(classObj.type);
+
+	// Проверяем если это кастомный цвет
+	const isCustomColor = classColor.startsWith("custom-color-");
+	const customColorHex = isCustomColor ? `#${classColor.replace("custom-color-", "")}` : null;
 
 	return (
 		<div
-			className={`class-block absolute bg-white border-2 rounded-lg shadow-md min-w-48 overflow-hidden ${isConnecting ? "cursor-pointer" : "cursor-move"} ${getDynamicClassColor(
-				classObj.type,
-			)} ${isSelected ? "ring-2 ring-blue-500 shadow-xl border-blue-400 bg-blue-50" : ""} ${isConnectionStart ? "ring-2 ring-green-400" : ""}`}
+			className={`class-block absolute bg-white border-2 rounded-lg shadow-md min-w-48 overflow-hidden ${isConnecting ? "cursor-pointer" : "cursor-move"} ${!isCustomColor ? classColor : ""} ${
+				selectedClass?.id === classObj.id || isSelected ? "ring-2 ring-blue-500 shadow-xl border-blue-400 bg-blue-50" : ""
+			} ${isConnectionStart ? "ring-2 ring-green-400" : ""}`}
 			style={{
 				left: classObj.position.x,
 				top: classObj.position.y,
 				userSelect: "none",
+				...(isCustomColor && {
+					backgroundColor: selectedClass?.id === classObj.id || isSelected ? "#3b82f620" : customColorHex + "20",
+					borderColor: selectedClass?.id === classObj.id || isSelected ? "#3b82f6" : customColorHex,
+				}),
 			}}
 			onMouseDown={(e) => handleClassClick(e, classObj)}
 			onClick={(e) => {

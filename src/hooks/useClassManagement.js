@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useClipboard } from "./useClipboard";
 
 export const useClassManagement = (currentArchitecture, updateCurrentArchitecture, generateId) => {
 	const [selectedClass, setSelectedClass] = useState(null);
@@ -9,11 +10,37 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 	const classes = currentArchitecture.classes;
 	const classCategories = currentArchitecture.categories;
 
+	// Инициализируем хук для работы с буфером обмена
+	const { copiedClass, copyClass, pasteClass, hasCopiedClass } = useClipboard(
+		generateId,
+		{ zoom: 1, offsetX: 0, offsetY: 0 }, // Временная заглушка, будет обновлена через setLocalCamera
+		updateCurrentArchitecture,
+		currentArchitecture,
+	);
+
+	// Добавляем функцию для обновления localCamera в хуке clipboard
+	const [localCamera, setLocalCamera] = useState({ zoom: 1, offsetX: 0, offsetY: 0 });
+
+	// Обработка копирования выбранного класса
 	useEffect(() => {
-		if (classCategories.length > 0 && !newClassForm.type) {
-			setNewClassForm((prev) => ({ ...prev, type: classCategories[0] }));
-		}
-	}, [classCategories]);
+		const handleKeyDown = (e) => {
+			// Проверяем, что фокус не на input/textarea
+			if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+				return;
+			}
+
+			const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+			const isCtrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+
+			if (isCtrlOrCmd && e.key === "c" && selectedClass) {
+				e.preventDefault();
+				copyClass(selectedClass);
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [selectedClass, copyClass]);
 
 	const addCustomClass = async (localCamera) => {
 		console.log("useClassManagement: addCustomClass called");
@@ -133,6 +160,11 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		setDraggedClass(null);
 	};
 
+	// Функция для обновления камеры (будет вызываться из App)
+	const updateLocalCamera = (camera) => {
+		setLocalCamera(camera);
+	};
+
 	return {
 		selectedClass,
 		setSelectedClass,
@@ -150,5 +182,11 @@ export const useClassManagement = (currentArchitecture, updateCurrentArchitectur
 		handleMouseDown,
 		handleDragMove,
 		handleDragEnd,
+		// Добавляем функции буфера обмена
+		copyClass,
+		pasteClass,
+		hasCopiedClass,
+		copiedClass,
+		updateLocalCamera,
 	};
 };

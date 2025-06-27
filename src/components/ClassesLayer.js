@@ -3,7 +3,9 @@ import { getDynamicClassColor } from "../utils/classColors";
 import ClassBlock from "./ClassBlock";
 import EmptyStateMessage from "./EmptyStateMessage";
 
-const ClassesLayer = ({ classes, localCamera, isConnecting, connectionStart, selectedClass, handleClassClick }) => {
+const ClassesLayer = ({ classes, localCamera, isConnecting, connectionStart, selectedClass, handleClassClick, currentArchitecture, forceRender, selectedClasses, isClassSelected }) => {
+	const customColors = currentArchitecture?.customCategoryColors || {};
+
 	return (
 		<div
 			style={{
@@ -14,17 +16,35 @@ const ClassesLayer = ({ classes, localCamera, isConnecting, connectionStart, sel
 				height: "100%",
 			}}
 		>
-			{classes.map((classObj) => (
-				<ClassBlock
-					key={classObj.id}
-					classObj={classObj}
-					isConnecting={isConnecting}
-					connectionStart={connectionStart}
-					selectedClass={selectedClass}
-					handleClassClick={handleClassClick}
-					getDynamicClassColor={getDynamicClassColor}
-				/>
-			))}
+			{classes.map((classObj) => {
+				const isSelected = isClassSelected(classObj.id);
+
+				// Добавляем отладку
+				if (isSelected) {
+					console.log(`ClassesLayer: Класс ${classObj.name} должен быть выделен`);
+				}
+
+				return (
+					<ClassBlock
+						key={`${classObj.id}-${forceRender}`} // Используем forceRender в key
+						classObj={{
+							...classObj,
+							position: {
+								// НЕ применяем трансформацию - она уже применена к контейнеру
+								x: classObj.position.x,
+								y: classObj.position.y,
+							},
+						}}
+						isConnecting={isConnecting}
+						connectionStart={connectionStart}
+						selectedClass={selectedClass}
+						handleClassClick={handleClassClick}
+						getDynamicClassColor={(type) => getDynamicClassColor(type, customColors)}
+						// Добавляем проп для множественного выделения
+						isSelected={isSelected}
+					/>
+				);
+			})}
 
 			{classes.length === 0 && <EmptyStateMessage />}
 		</div>

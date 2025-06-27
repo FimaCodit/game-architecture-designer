@@ -2,13 +2,64 @@ import React from "react";
 import { calculateConnectionPath, calculatePreviewPath } from "../utils/connectionPaths";
 
 const ConnectionsLayer = ({ connections, connectionPreview, classes, localCamera, deleteConnection }) => {
+	// Функция для получения стиля линии в зависимости от типа связи
+	const getConnectionStyle = (connectionType) => {
+		switch (connectionType) {
+			case "uses":
+				return {
+					stroke: "#3b82f6", // синий
+					strokeWidth: 2,
+					strokeDasharray: "none",
+				};
+			case "extends":
+				return {
+					stroke: "#10b981", // зеленый
+					strokeWidth: 2.5,
+					strokeDasharray: "none",
+				};
+			case "contains":
+				return {
+					stroke: "#f59e0b", // оранжевый
+					strokeWidth: 2,
+					strokeDasharray: "none",
+				};
+			case "creates":
+				return {
+					stroke: "#8b5cf6", // фиолетовый
+					strokeWidth: 2,
+					strokeDasharray: "5,3",
+				};
+			case "related":
+			default:
+				return {
+					stroke: "#6b7280", // серый
+					strokeWidth: 2,
+					strokeDasharray: "none",
+				};
+		}
+	};
+
+	// Функция для получения текстовой метки типа связи
+	const getConnectionLabel = (connectionType) => {
+		switch (connectionType) {
+			case "uses":
+				return "использует";
+			case "extends":
+				return "наследует";
+			case "contains":
+				return "содержит";
+			case "creates":
+				return "создает";
+			case "related":
+			default:
+				return "связан";
+		}
+	};
+
 	return (
 		<svg className="absolute pointer-events-none" style={{ zIndex: 10, left: 0, top: 0, width: "100%", height: "100%", overflow: "visible" }}>
 			<defs>
-				<linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-					<stop offset="0%" stopColor="#6366f1" stopOpacity="0.8" />
-					<stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.9" />
-				</linearGradient>
+				{/* Тень */}
 				<filter id="connectionShadow" x="-50%" y="-50%" width="200%" height="200%">
 					<feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#000000" floodOpacity="0.1" />
 				</filter>
@@ -21,19 +72,36 @@ const ConnectionsLayer = ({ connections, connectionPreview, classes, localCamera
 				if (!fromClass || !toClass) return null;
 
 				const path = calculateConnectionPath(fromClass, toClass, localCamera);
+				const style = getConnectionStyle(connection.type);
+				const label = getConnectionLabel(connection.type);
+				const pathId = `path-${connection.id}`;
+
 				return (
 					<g key={connection.id}>
-						<path d={path} stroke="rgba(0,0,0,0.1)" strokeWidth={2.5 * localCamera.zoom + 1} fill="none" className="pointer-events-none" transform="translate(0, 1)" />
+						{/* Тень линии */}
 						<path
 							d={path}
-							stroke="url(#connectionGradient)"
-							strokeWidth={2.5 * localCamera.zoom}
+							stroke="rgba(0,0,0,0.1)"
+							strokeWidth={(style.strokeWidth + 0.5) * localCamera.zoom}
 							fill="none"
+							className="pointer-events-none"
+							transform="translate(1, 1)"
+							strokeDasharray={style.strokeDasharray}
+						/>
+
+						{/* Основная линия */}
+						<path
+							id={pathId}
+							d={path}
+							stroke={style.stroke}
+							strokeWidth={style.strokeWidth * localCamera.zoom}
+							fill="none"
+							strokeDasharray={style.strokeDasharray}
 							className="connection-line pointer-events-auto cursor-pointer"
 							style={{ filter: "url(#connectionShadow)" }}
 							onClick={(e) => {
 								e.stopPropagation();
-								if (window.confirm("Удалить эту связь?")) {
+								if (window.confirm(`Удалить связь "${label}"?`)) {
 									deleteConnection(connection.id);
 								}
 							}}

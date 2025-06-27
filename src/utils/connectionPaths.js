@@ -145,8 +145,11 @@ export const calculateConnectionPath = (fromClass, toClass, camera) => {
 export const calculatePreviewPath = (connectionPreview, camera) => {
 	if (!connectionPreview) return "";
 
+	// Обе координаты теперь в системе классов, применяем трансформацию камеры к обеим
 	const fromX = connectionPreview.from.x * camera.zoom + camera.offsetX;
 	const fromY = connectionPreview.from.y * camera.zoom + camera.offsetY;
+	const toX = connectionPreview.to.x * camera.zoom + camera.offsetX;
+	const toY = connectionPreview.to.y * camera.zoom + camera.offsetY;
 
-	return `M ${fromX} ${fromY} L ${connectionPreview.to.x} ${connectionPreview.to.y}`;
+	return `M ${fromX} ${fromY} L ${toX} ${toY}`;
 };

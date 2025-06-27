@@ -1,23 +1,26 @@
 import React, { useState } from "react";
-import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, Copy, Clipboard } from "lucide-react";
 
-const ClassDetails = ({ selectedClass, classCategories, onUpdateProperty, onAddProperty, onAddMethod, onDeleteClass }) => {
+const ClassDetails = ({
+	selectedClass,
+	classCategories,
+	onUpdateProperty,
+	onAddProperty,
+	onAddMethod,
+	onDeleteClass,
+	copyClass,
+	pasteClass,
+	hasCopiedClass,
+	copiedClass,
+	hasMultipleSelection,
+	selectedClasses,
+}) => {
 	const [editingProperty, setEditingProperty] = useState(null);
 	const [editingMethod, setEditingMethod] = useState(null);
 	const [editValues, setEditValues] = useState({});
 
-	if (!selectedClass) {
-		return null;
-	}
-
 	const updateProperty = (field, value) => {
 		onUpdateProperty(selectedClass.id, field, value);
-
-		// Обновляем локальное состояние выбранного класса
-		if (field === "name") {
-			// Эмитируем обновление, чтобы компонент перерендерился с новыми данными
-			// selectedClass будет обновлен через пропсы при следующем рендере
-		}
 	};
 
 	const startEditProperty = (index) => {
@@ -66,9 +69,57 @@ const ClassDetails = ({ selectedClass, classCategories, onUpdateProperty, onAddP
 		updateProperty("methods", updatedMethods);
 	};
 
+	if (!selectedClass && !hasMultipleSelection) {
+		return (
+			<div className="mt-6 border-t pt-4">
+				<p className="text-gray-500 text-sm">Выберите класс для редактирования</p>
+			</div>
+		);
+	}
+
+	// Если выделено несколько классов
+	if (hasMultipleSelection) {
+		return (
+			<div className="mt-6 border-t pt-4">
+				<div className="p-4 bg-gray-100 rounded-lg">
+					<h3 className="font-semibold text-gray-600 mb-2">Множественное выделение</h3>
+					<p className="text-sm text-gray-600 mb-2">Выделено классов: {selectedClasses.length}</p>
+					<p className="text-xs text-gray-500">Удерживайте Cmd/Ctrl для выделения области</p>
+
+					{/* Кнопки массовых операций */}
+					<div className="mt-3 space-y-2">
+						<button className="w-full p-2 bg-gray-300 text-gray-600 rounded cursor-not-allowed" disabled>
+							Массовое редактирование (в разработке)
+						</button>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// Обычное редактирование одного класса
 	return (
 		<div className="mt-6 border-t pt-4">
-			<h3 className="font-semibold mb-2">Редактирование: {selectedClass.name}</h3>
+			<div className="flex items-center justify-between mb-2">
+				<h3 className="font-semibold">Редактирование: {selectedClass.name}</h3>
+				<div className="flex gap-1">
+					<button onClick={() => copyClass(selectedClass)} className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" title="Копировать класс (Cmd/Ctrl+C)">
+						<Copy size={14} />
+					</button>
+					{hasCopiedClass && (
+						<button onClick={pasteClass} className="p-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded" title={`Вставить "${copiedClass?.name}" (Cmd/Ctrl+V)`}>
+							<Clipboard size={14} />
+						</button>
+					)}
+				</div>
+			</div>
+
+			{hasCopiedClass && (
+				<div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+					<div className="font-medium text-blue-800">Скопирован: {copiedClass?.name}</div>
+					<div className="text-blue-600">Нажмите Cmd/Ctrl+V для вставки</div>
+				</div>
+			)}
 
 			<div className="mb-4">
 				<label className="block text-sm font-medium mb-1">Название</label>

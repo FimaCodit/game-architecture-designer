@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import AuthComponent from "./AuthComponent";
-import SyncStatus from "./SyncStatus";
 import ArchitectureManager from "./ArchitectureManager";
 import CategoryManagement from "./CategoryManagement";
 import ClassCreator from "./ClassCreator";
@@ -8,6 +7,7 @@ import ClassDetails from "./ClassDetails";
 import ExportControls from "./ExportControls";
 import ConnectionControls from "./ConnectionControls";
 import { useAuth } from "../contexts/AuthContext";
+import { Settings, ChevronDown } from "lucide-react";
 
 const Sidebar = ({
 	isVisible,
@@ -26,6 +26,8 @@ const Sidebar = ({
 	isConnecting,
 	toggleConnectionMode,
 	connectionsCount,
+	selectedConnectionType,
+	onConnectionTypeChange,
 	currentArchitecture,
 	selectedClass,
 	updateClassProperty,
@@ -38,21 +40,31 @@ const Sidebar = ({
 	clearError,
 	forceSync,
 	isAuthenticated,
+	copyClass,
+	pasteClass,
+	hasCopiedClass,
+	copiedClass,
+	hasMultipleSelection,
+	selectedClasses,
 }) => {
 	const { user } = useAuth();
+	const [showConstructorDetails, setShowConstructorDetails] = useState(false); // Изменяем на false
 
 	return (
-		<div className={`bg-white border-r border-gray-200 overflow-y-auto transition-all duration-300 ${isVisible ? "w-80 p-4" : "w-0 p-0"}`}>
+		<div className={`bg-white border-r border-gray-200 overflow-y-auto transition-all duration-300 ${isVisible ? "w-80 p-4" : "w-0 p-0"} relative`}>
+			{/* Кружочек синхронизации */}
+			{user && isVisible && (
+				<div className="absolute top-3 right-3 z-10">
+					<div
+						className={`w-3 h-3 rounded-full ${syncStatus === "synced" ? "bg-green-500" : syncStatus === "syncing" ? "bg-yellow-500 animate-pulse" : "bg-red-500"}`}
+						title={syncStatus === "synced" ? "Синхронизировано" : syncStatus === "syncing" ? "Синхронизация..." : "Ошибка синхронизации"}
+					/>
+				</div>
+			)}
+
 			<div className={`${isVisible ? "block" : "hidden"}`}>
 				{/* Компонент авторизации */}
 				<AuthComponent />
-
-				{/* Статус синхронизации */}
-				{user && (
-					<div className="mb-4">
-						<SyncStatus syncStatus={syncStatus} error={error} onForceSync={forceSync} onClearError={clearError} />
-					</div>
-				)}
 
 				{/* Индикатор загрузки */}
 				{loading && (
@@ -97,16 +109,43 @@ const Sidebar = ({
 					isAuthenticated={isAuthenticated}
 				/>
 
-				<h2 className="text-xl font-bold mb-4">Конструктор архитектуры</h2>
+				{/* Заголовок конструктора с кнопкой раскрытия - в том же стиле что и архитектуры */}
+				<div className="mb-6">
+					<div className="flex items-center gap-2 mb-4">
+						<Settings size={20} className="text-gray-600" />
+						<button
+							onClick={() => setShowConstructorDetails(!showConstructorDetails)}
+							className="flex items-center gap-2 text-left hover:text-blue-600 transition-colors flex-1"
+							title={showConstructorDetails ? "Скрыть конструктор" : "Показать конструктор"}
+						>
+							<h2 className="text-base font-bold text-gray-800 hover:text-blue-600 transition-colors">Конструктор архитектуры</h2>
+							<ChevronDown size={16} className={`transform transition-transform text-gray-500 ${showConstructorDetails ? "rotate-180" : ""}`} />
+						</button>
+					</div>
 
-				<CategoryManagement classCategories={classCategories} classes={classes} updateCurrentArchitecture={updateCurrentArchitecture} />
+					{/* Скрываемый контент конструктора (только категории и экспорт) */}
+					{showConstructorDetails && (
+						<div className="space-y-6">
+							<CategoryManagement classCategories={classCategories} classes={classes} updateCurrentArchitecture={updateCurrentArchitecture} currentArchitecture={currentArchitecture} />
 
+							<ExportControls currentArchitecture={currentArchitecture} />
+						</div>
+					)}
+				</div>
+
+				{/* Создание класса - всегда видно */}
 				<ClassCreator newClassForm={newClassForm} setNewClassForm={setNewClassForm} classCategories={classCategories} onAddClass={addCustomClass} />
 
-				<ConnectionControls isConnecting={isConnecting} onToggleConnectionMode={toggleConnectionMode} connectionsCount={connectionsCount} />
+				{/* Связи между классами - всегда видно */}
+				<ConnectionControls
+					isConnecting={isConnecting}
+					onToggleConnectionMode={toggleConnectionMode}
+					connectionsCount={connectionsCount}
+					selectedConnectionType={selectedConnectionType}
+					onConnectionTypeChange={onConnectionTypeChange}
+				/>
 
-				<ExportControls currentArchitecture={currentArchitecture} />
-
+				{/* Редактирование класса - возвращаем обратно */}
 				<ClassDetails
 					selectedClass={selectedClass}
 					classCategories={classCategories}
@@ -114,6 +153,12 @@ const Sidebar = ({
 					onAddProperty={addProperty}
 					onAddMethod={addMethod}
 					onDeleteClass={deleteClass}
+					copyClass={copyClass}
+					pasteClass={pasteClass}
+					hasCopiedClass={hasCopiedClass}
+					copiedClass={copiedClass}
+					hasMultipleSelection={hasMultipleSelection}
+					selectedClasses={selectedClasses}
 				/>
 			</div>
 		</div>

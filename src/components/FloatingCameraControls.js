@@ -1,20 +1,20 @@
 import React, { useState, useRef } from "react";
 import { Camera, Plus, Minus, RotateCcw, ChevronDown } from "lucide-react";
 
-const FloatingCameraControls = ({ localCamera, zoomIn, zoomOut, resetCamera }) => {
+const FloatingCameraControls = ({ onZoomIn, onZoomOut, onResetCamera, zoom = 1 }) => {
 	const [isExpanded, setIsExpanded] = useState(false);
 	const menuRef = useRef(null);
 
 	const handleZoomIn = () => {
-		zoomIn();
+		onZoomIn();
 	};
 
 	const handleZoomOut = () => {
-		zoomOut();
+		onZoomOut();
 	};
 
 	const handleReset = () => {
-		resetCamera();
+		onResetCamera();
 	};
 
 	const handleBackdropClick = (e) => {
@@ -49,7 +49,7 @@ const FloatingCameraControls = ({ localCamera, zoomIn, zoomOut, resetCamera }) =
 						</div>
 
 						{/* Информация о зуме */}
-						<div className="text-xs text-gray-600 mb-3 text-center">Зум: {Math.round(localCamera.zoom * 100)}%</div>
+						<div className="text-xs text-gray-600 mb-3 text-center">Зум: {Math.round(zoom * 100)}%</div>
 
 						{/* Кнопки управления */}
 						<div className="space-y-2">

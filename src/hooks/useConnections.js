@@ -4,6 +4,7 @@ export const useConnections = (currentArchitecture, updateCurrentArchitecture, g
 	const [isConnecting, setIsConnecting] = useState(false);
 	const [connectionStart, setConnectionStart] = useState(null);
 	const [connectionPreview, setConnectionPreview] = useState(null);
+	const [selectedConnectionType, setSelectedConnectionType] = useState("related"); // По умолчанию "связан"
 
 	const connections = currentArchitecture.connections;
 
@@ -12,6 +13,18 @@ export const useConnections = (currentArchitecture, updateCurrentArchitecture, g
 		setConnectionStart(null);
 		setConnectionPreview(null);
 	}, []);
+
+	const toggleConnectionMode = useCallback(() => {
+		if (isConnecting) {
+			setIsConnecting(false);
+			setConnectionStart(null);
+			setConnectionPreview(null);
+		} else {
+			setIsConnecting(true);
+			setConnectionStart(null);
+			setConnectionPreview(null);
+		}
+	}, [isConnecting]);
 
 	const startConnection = useCallback(
 		(classId, position) => {
@@ -30,6 +43,7 @@ export const useConnections = (currentArchitecture, updateCurrentArchitecture, g
 				hasConnectionStart: !!connectionStart,
 				sameClass: connectionStart?.classId === targetClassId,
 				connectionsLength: connections.length,
+				selectedConnectionType,
 			});
 
 			if (connectionStart && targetClassId && connectionStart.classId !== targetClassId) {
@@ -50,7 +64,7 @@ export const useConnections = (currentArchitecture, updateCurrentArchitecture, g
 						id: generateId(),
 						from: connectionStart.classId,
 						to: targetClassId,
-						type: "association",
+						type: selectedConnectionType, // Используем выбранный тип связи
 						label: "",
 					};
 
@@ -72,18 +86,12 @@ export const useConnections = (currentArchitecture, updateCurrentArchitecture, g
 				});
 			}
 
-			// Сбрасываем состояние создания связи
+			// Сбрасываем состояние
 			setConnectionStart(null);
 			setConnectionPreview(null);
 		},
-		[connectionStart, connections, updateCurrentArchitecture, generateId],
+		[connectionStart, connections, updateCurrentArchitecture, generateId, selectedConnectionType],
 	);
-
-	const cancelConnection = useCallback(() => {
-		setIsConnecting(false);
-		setConnectionStart(null);
-		setConnectionPreview(null);
-	}, []);
 
 	const deleteConnection = useCallback(
 		(connectionId) => {
@@ -93,26 +101,18 @@ export const useConnections = (currentArchitecture, updateCurrentArchitecture, g
 		[connections, updateCurrentArchitecture],
 	);
 
-	const resetCurrentConnection = useCallback(() => {
-		setConnectionStart(null);
-		setConnectionPreview(null);
-	}, []);
-
 	const updateConnectionPreview = useCallback(
 		(mousePosition) => {
-			if (connectionStart && localCamera && canvasRef?.current) {
-				// Преобразуем координаты мыши в систему координат классов
+			if (connectionStart && isConnecting && localCamera && canvasRef?.current) {
+				// Преобразуем координаты мыши в систему координат канваса
 				const canvasRect = canvasRef.current.getBoundingClientRect();
 
-				// Применяем обратную трансформацию
+				// Вычисляем координаты в системе координат классов (без учета трансформации камеры)
 				const canvasX = (mousePosition.x - canvasRect.left - localCamera.offsetX) / localCamera.zoom;
 				const canvasY = (mousePosition.y - canvasRect.top - localCamera.offsetY) / localCamera.zoom;
 
 				setConnectionPreview({
-					from: {
-						x: connectionStart.position.x,
-						y: connectionStart.position.y,
-					},
+					from: connectionStart.position,
 					to: {
 						x: canvasX,
 						y: canvasY,
@@ -120,20 +120,38 @@ export const useConnections = (currentArchitecture, updateCurrentArchitecture, g
 				});
 			}
 		},
-		[connectionStart, localCamera, canvasRef],
+		[connectionStart, isConnecting, localCamera, canvasRef],
 	);
 
+	const changeConnectionType = useCallback((newType) => {
+		setSelectedConnectionType(newType);
+	}, []);
+
+	const resetCurrentConnection = useCallback(() => {
+		setConnectionStart(null);
+		setConnectionPreview(null);
+	}, []);
+
+	const cancelConnection = useCallback(() => {
+		setIsConnecting(false);
+		setConnectionStart(null);
+		setConnectionPreview(null);
+	}, []);
+
 	return {
+		connections,
 		isConnecting,
 		connectionStart,
 		connectionPreview,
-		connections,
+		selectedConnectionType,
 		enableConnectionMode,
+		toggleConnectionMode,
 		startConnection,
 		finishConnection,
-		cancelConnection,
-		resetCurrentConnection,
 		deleteConnection,
 		updateConnectionPreview,
+		changeConnectionType,
+		resetCurrentConnection,
+		cancelConnection,
 	};
 };
