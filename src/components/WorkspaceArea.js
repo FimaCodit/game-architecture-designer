@@ -60,9 +60,6 @@ const WorkspaceArea = ({
 
 	return (
 		<div className="flex-1 relative overflow-hidden">
-			{/* Индикатор режима выделения */}
-			{isSelectionMode && <div className="absolute top-4 left-4 z-50 bg-blue-500 text-white px-3 py-1 rounded text-sm">🎯 Режим выделения (Ctrl/Cmd)</div>}
-
 			<div
 				ref={canvasRef}
 				className={`w-full h-full bg-gray-100 relative overflow-hidden select-none ${isPanning ? "cursor-grabbing" : isSelectionMode ? "cursor-crosshair" : "cursor-grab"}`}
@@ -106,6 +103,9 @@ const WorkspaceArea = ({
 						</div>
 					</div>
 				)}
+
+				{/* Индикатор режима выделения - перемещаем в левый нижний угол */}
+				{isSelectionMode && <div className="absolute bottom-4 left-4 z-50 bg-blue-500 text-white px-3 py-1 rounded text-sm">🎯 Режим выделения (Ctrl/Cmd)</div>}
 			</div>
 		</div>
 	);

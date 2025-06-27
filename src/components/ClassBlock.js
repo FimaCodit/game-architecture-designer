@@ -59,24 +59,22 @@ const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, ha
 			{classObj.properties.length > 0 && (
 				<div className="p-2 border-b bg-white">
 					<div className="text-xs font-semibold mb-1">Properties:</div>
-					{classObj.properties.slice(0, 3).map((prop, idx) => (
+					{classObj.properties.map((prop, idx) => (
 						<div key={idx} className="text-xs text-gray-700">
 							{prop.access === "private" ? "-" : "+"} {prop.name}: {prop.type}
 						</div>
 					))}
-					{classObj.properties.length > 3 && <div className="text-xs text-gray-500">...и ещё {classObj.properties.length - 3}</div>}
 				</div>
 			)}
 
 			{classObj.methods.length > 0 && (
 				<div className="p-2 bg-white">
 					<div className="text-xs font-semibold mb-1">Methods:</div>
-					{classObj.methods.slice(0, 3).map((method, idx) => (
+					{classObj.methods.map((method, idx) => (
 						<div key={idx} className="text-xs text-gray-700">
 							{method.access === "private" ? "-" : "+"} {method.name}({method.params})
 						</div>
 					))}
-					{classObj.methods.length > 3 && <div className="text-xs text-gray-500">...и ещё {classObj.methods.length - 3}</div>}
 				</div>
 			)}
 		</div>
