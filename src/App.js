@@ -231,7 +231,7 @@ const AppContent = () => {
 			/>
 
 			<div className="flex-1 flex flex-col relative">
-				<SidebarToggle isVisible={isSidebarVisible} onToggle={() => setIsSidebarVisible(!isSidebarVisible)} />
+				<SidebarToggle isVisible={isSidebarVisible} onToggle={() => setIsSidebarVisible((v) => !v)} />
 
 				<WorkspaceArea
 					currentArchitecture={currentArchitecture}
