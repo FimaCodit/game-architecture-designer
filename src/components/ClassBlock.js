@@ -73,7 +73,7 @@ const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, ha
 		>
 			{/* Индикатор группового выделения */}
 			{isSelected && (
-				<div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
+				<div className="absolute -top-0 -right-0 w-4 h-4 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center shadow-md">
 					<span className="text-white text-xs font-bold">✓</span>
 				</div>
 			)}
@@ -89,8 +89,9 @@ const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, ha
 				<div className="p-2 border-b" style={{ backgroundColor: "#374151", borderColor: "#4b5563" }}>
 					<div className="text-xs font-semibold mb-1 text-white">Properties:</div>
 					{classObj.properties.map((prop, idx) => (
-						<div key={idx} className="text-xs text-gray-200">
-							{prop.access === "private" ? "-" : "+"} {prop.name}: {prop.type}
+						<div key={idx} className="text-xs" style={{ color: "#60a5fa" }}>
+							<span style={{ color: "#a78bfa" }}>{prop.access === "private" ? "private" : "public"}</span> <span style={{ color: "#34d399" }}>{prop.type}</span>{" "}
+							<span style={{ color: "#fbbf24" }}>{prop.name}</span>
 						</div>
 					))}
 				</div>
@@ -100,8 +101,10 @@ const ClassBlock = ({ classObj, isConnecting, connectionStart, selectedClass, ha
 				<div className="p-2" style={{ backgroundColor: "#374151" }}>
 					<div className="text-xs font-semibold mb-1 text-white">Methods:</div>
 					{classObj.methods.map((method, idx) => (
-						<div key={idx} className="text-xs text-gray-200">
-							{method.access === "private" ? "-" : "+"} {method.name}({method.params})
+						<div key={idx} className="text-xs" style={{ color: "#60a5fa" }}>
+							<span style={{ color: "#a78bfa" }}>{method.access === "private" ? "private" : "public"}</span> <span style={{ color: "#34d399" }}>{method.returnType}</span>{" "}
+							<span style={{ color: "#fbbf24" }}>{method.name}</span>
+							<span style={{ color: "#e5e7eb" }}>({method.params})</span>
 						</div>
 					))}
 				</div>

@@ -205,7 +205,7 @@ const ClassDetails = ({
 								</div>
 							) : (
 								<div className="flex justify-between items-center">
-									<span className="text-xs">
+									<span className="text-xs" style={{ color: "#82AAFF" }}>
 										{prop.access} {prop.type} {prop.name}
 									</span>
 									<div className="flex gap-1">
@@ -280,7 +280,7 @@ const ClassDetails = ({
 								</div>
 							) : (
 								<div className="flex justify-between items-center">
-									<span className="text-xs">
+									<span className="text-xs" style={{ color: "#C792EA" }}>
 										{method.access} {method.returnType} {method.name}({method.params})
 									</span>
 									<div className="flex gap-1">
