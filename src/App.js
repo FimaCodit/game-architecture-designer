@@ -211,7 +211,7 @@ const AppContent = () => {
 				addProperty={addProperty}
 				addMethod={addMethod}
 				deleteClass={deleteClass}
-				deleteMultipleClasses={deleteMultipleClasses} // Добавляем
+				deleteMultipleClasses={deleteMultipleClasses}
 				loading={loading}
 				error={error}
 				syncStatus={syncStatus}

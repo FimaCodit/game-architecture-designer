@@ -47,6 +47,7 @@ const Sidebar = ({
 	copiedClass,
 	hasMultipleSelection,
 	selectedClasses,
+	deleteMultipleClasses, // Добавляем в деструктуризацию пропсов
 	// Добавляем новые пропсы для шаблонов
 	applyTemplate,
 	generateId,
@@ -160,6 +161,7 @@ const Sidebar = ({
 					onAddProperty={addProperty}
 					onAddMethod={addMethod}
 					onDeleteClass={deleteClass}
+					onDeleteMultiple={deleteMultipleClasses} // Передаем функцию массового удаления
 					copyClass={copyClass}
 					pasteClass={pasteClass}
 					hasCopiedClass={hasCopiedClass}

@@ -8,6 +8,7 @@ const ClassDetails = ({
 	onAddProperty,
 	onAddMethod,
 	onDeleteClass,
+	onDeleteMultiple, // Добавляем в деструктуризацию пропсов
 	copyClass,
 	pasteClass,
 	hasCopiedClass,
@@ -84,10 +85,30 @@ const ClassDetails = ({
 				<div className="p-4 bg-gray-100 rounded-lg">
 					<h3 className="font-semibold text-gray-600 mb-2">Множественное выделение</h3>
 					<p className="text-sm text-gray-600 mb-2">Выделено классов: {selectedClasses.length}</p>
-					<p className="text-xs text-gray-500">Удерживайте Cmd/Ctrl для выделения области</p>
+					<p className="text-xs text-gray-500 mb-3">Удерживайте Cmd/Ctrl для выделения области</p>
 
 					{/* Кнопки массовых операций */}
 					<div className="mt-3 space-y-2">
+						<button
+							onClick={() => {
+								const confirmMessage = `Удалить ${selectedClasses.length} ${selectedClasses.length === 1 ? "класс" : selectedClasses.length < 5 ? "класса" : "классов"}?`;
+								if (window.confirm(confirmMessage)) {
+									// Используем существующую функцию deleteMultipleClasses если она передана
+									if (onDeleteMultiple) {
+										onDeleteMultiple(selectedClasses);
+									} else {
+										// Альтернативный способ через кастомное событие
+										const event = new CustomEvent("deleteSelectedClasses", { detail: selectedClasses });
+										document.dispatchEvent(event);
+									}
+								}
+							}}
+							className="w-full p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+						>
+							<Trash2 size={16} />
+							Удалить выделенные классы ({selectedClasses.length})
+						</button>
+
 						<button className="w-full p-2 bg-gray-300 text-gray-600 rounded cursor-not-allowed" disabled>
 							Массовое редактирование (в разработке)
 						</button>

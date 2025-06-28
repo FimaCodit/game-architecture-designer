@@ -8,32 +8,32 @@ const ConnectionsLayer = ({ connections, connectionPreview, classes, localCamera
 			case "uses":
 				return {
 					stroke: "#3b82f6", // синий
-					strokeWidth: 2,
+					strokeWidth: 2, // Возвращаем исходную толщину
 					strokeDasharray: "none",
 				};
 			case "extends":
 				return {
 					stroke: "#10b981", // зеленый
-					strokeWidth: 2.5,
+					strokeWidth: 2.5, // Возвращаем исходную толщину
 					strokeDasharray: "none",
 				};
 			case "contains":
 				return {
 					stroke: "#f59e0b", // оранжевый
-					strokeWidth: 2,
+					strokeWidth: 2, // Возвращаем исходную толщину
 					strokeDasharray: "none",
 				};
 			case "creates":
 				return {
 					stroke: "#8b5cf6", // фиолетовый
-					strokeWidth: 2,
+					strokeWidth: 2, // Возвращаем исходную толщину
 					strokeDasharray: "5,3",
 				};
 			case "related":
 			default:
 				return {
 					stroke: "#6b7280", // серый
-					strokeWidth: 2,
+					strokeWidth: 2, // Возвращаем исходную толщину
 					strokeDasharray: "none",
 				};
 		}
@@ -76,6 +76,21 @@ const ConnectionsLayer = ({ connections, connectionPreview, classes, localCamera
 				const label = getConnectionLabel(connection.type);
 				const pathId = `path-${connection.id}`;
 
+				// Определяем, является ли связь прямой линией
+				const fromPoint = calculateConnectionPath.getConnectionPoint ? calculateConnectionPath.getConnectionPoint(fromClass, toClass, localCamera) : null;
+				const toPoint = calculateConnectionPath.getConnectionPoint ? calculateConnectionPath.getConnectionPoint(toClass, fromClass, localCamera) : null;
+
+				let isStraightLine = false;
+				if (fromPoint && toPoint) {
+					const deltaX = Math.abs(toPoint.x - fromPoint.x);
+					const deltaY = Math.abs(toPoint.y - fromPoint.y);
+					// Считаем линию прямой, если она строго горизонтальная или вертикальная
+					isStraightLine = deltaX < 5 || deltaY < 5;
+				}
+
+				// Увеличиваем толщину для прямых линий
+				const adjustedStrokeWidth = isStraightLine ? Math.max(style.strokeWidth * 2 * localCamera.zoom, 4) : style.strokeWidth * localCamera.zoom;
+
 				return (
 					<g key={connection.id}>
 						{/* Тень линии */}
@@ -94,7 +109,7 @@ const ConnectionsLayer = ({ connections, connectionPreview, classes, localCamera
 							id={pathId}
 							d={path}
 							stroke={style.stroke}
-							strokeWidth={style.strokeWidth * localCamera.zoom}
+							strokeWidth={adjustedStrokeWidth}
 							fill="none"
 							strokeDasharray={style.strokeDasharray}
 							className="connection-line pointer-events-auto cursor-pointer"
@@ -116,7 +131,7 @@ const ConnectionsLayer = ({ connections, connectionPreview, classes, localCamera
 					<path
 						d={calculatePreviewPath(connectionPreview, localCamera)}
 						stroke="#94a3b8"
-						strokeWidth={2 * localCamera.zoom}
+						strokeWidth={2 * localCamera.zoom} // Возвращаем исходную толщину для превью
 						strokeDasharray={`${6 * localCamera.zoom},${4 * localCamera.zoom}`}
 						fill="none"
 						className="pointer-events-none preview-line"

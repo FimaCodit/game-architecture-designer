@@ -24,9 +24,12 @@ export const useMultiSelection = (classes, localCamera, canvasRef) => {
 			// Обработка клавиши Delete для множественного выделения
 			if (e.key === "Delete" && selectedClasses.length > 0) {
 				e.preventDefault();
-				// Этот обработчик будет использован в компоненте, который имеет доступ к deleteMultipleClasses
-				const event = new CustomEvent("deleteSelectedClasses", { detail: selectedClasses });
-				document.dispatchEvent(event);
+				const confirmMessage = `Удалить ${selectedClasses.length} ${selectedClasses.length === 1 ? "класс" : selectedClasses.length < 5 ? "класса" : "классов"}?`;
+				if (window.confirm(confirmMessage)) {
+					// Этот обработчик будет использован в компоненте, который имеет доступ к deleteMultipleClasses
+					const event = new CustomEvent("deleteSelectedClasses", { detail: selectedClasses });
+					document.dispatchEvent(event);
+				}
 			}
 		};
 
