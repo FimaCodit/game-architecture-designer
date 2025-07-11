@@ -36,7 +36,7 @@ const calculateClassHeight = (classObj) => {
 };
 
 // Функция для вычисления точек подключения на краях класса
-const getConnectionPoint = (classObj, targetClassObj, localCamera) => {
+export const getConnectionPoint = (classObj, targetClassObj, localCamera) => {
 	// Получаем реальные размеры классов с учетом зума
 	const classSize = getClassSize(classObj, localCamera);
 	const targetSize = getClassSize(targetClassObj, localCamera);
