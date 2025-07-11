@@ -2,7 +2,8 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Замените эти значения на ваши из Firebase Console
+// Параметры конфигурации берутся из переменных окружения
+// REACT_APP_FIREBASE_*, которые должен задать разработчик
 const firebaseConfig = {
 	apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
 	authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
