@@ -240,7 +240,7 @@ const AppContent = () => {
 					connectionPreview={connectionPreview}
 					selectedClass={selectedClass}
 					isConnecting={isConnecting}
-					connectionStart={connectionStart} // Добавляем недостающий проп
+					connectionStart={connectionStart} // Добавляем недостающий пропс
 					draggedClass={draggedClass}
 					localCamera={localCamera}
 					canvasRef={canvasRef}
