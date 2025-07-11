@@ -1,5 +1,5 @@
 import React from "react";
-import { calculateConnectionPath, calculatePreviewPath } from "../utils/connectionPaths";
+import { calculateConnectionPath, calculatePreviewPath, getConnectionPoint } from "../utils/connectionPaths";
 
 const ConnectionsLayer = ({ connections, connectionPreview, classes, localCamera, deleteConnection }) => {
 	// Функция для получения стиля линии в зависимости от типа связи
@@ -119,9 +119,9 @@ const ConnectionsLayer = ({ connections, connectionPreview, classes, localCamera
 					}
 				};
 
-				// Определяем, является ли связь прямой линией
-				const fromPoint = calculateConnectionPath.getConnectionPoint ? calculateConnectionPath.getConnectionPoint(fromClass, toClass, localCamera) : null;
-				const toPoint = calculateConnectionPath.getConnectionPoint ? calculateConnectionPath.getConnectionPoint(toClass, fromClass, localCamera) : null;
+                                // Определяем, является ли связь прямой линией
+                                const fromPoint = getConnectionPoint(fromClass, toClass, localCamera);
+                                const toPoint = getConnectionPoint(toClass, fromClass, localCamera);
 
 				let isStraightLine = false;
 				if (fromPoint && toPoint) {
